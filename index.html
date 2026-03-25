@@ -14,30 +14,9 @@ header {
     padding:25px;
 }
 
-.logo {
-    width:80px;
-    display:block;
-    margin:0 auto 10px;
-}
+.logo { width:80px; display:block; margin:0 auto 10px; }
 
-nav {
-    background:#222;
-    text-align:center;
-    padding:10px;
-}
-
-nav a {
-    color:#f5e6cc;
-    margin:10px;
-    text-decoration:none;
-    font-weight:bold;
-}
-
-.section {
-    max-width:900px;
-    margin:auto;
-    padding:20px;
-}
+.section { max-width:900px; margin:auto; padding:20px; }
 
 .card {
     background:#f5e6cc;
@@ -51,15 +30,6 @@ nav a {
     display:block;
     margin:0 auto 10px;
 }
-
-/* DAY THEMES */
-.sunday { border-left:5px solid black; }
-.monday { border-left:5px solid #d97706; }
-.tuesday { border-left:5px solid #7f1d1d; }
-.wednesday { border-left:5px solid #374151; }
-.thursday { border-left:5px solid #111827; }
-.friday { border-left:5px solid #065f46; }
-.saturday { border-left:5px solid #78350f; }
 
 button {
     background:black;
@@ -79,30 +49,28 @@ button {
 <p>Feeding on the Word daily</p>
 </header>
 
-<nav>
-<a href="index.html">Home</a>
-</nav>
-
 <div class="section">
-
-<h2>Filter</h2>
-<button onclick="filterPosts('All')">All</button>
-<button onclick="filterPosts('Sunday')">Sunday</button>
-<button onclick="filterPosts('Monday')">Monday</button>
-<button onclick="filterPosts('Tuesday')">Tuesday</button>
-<button onclick="filterPosts('Wednesday')">Wednesday</button>
-<button onclick="filterPosts('Thursday')">Thursday</button>
-<button onclick="filterPosts('Friday')">Friday</button>
-<button onclick="filterPosts('Saturday')">Saturday</button>
-
 <h2>Devotionals</h2>
 <div id="posts"></div>
-
 </div>
 
-<script>
+<script type="module">
 
-// DEFAULT DAY IMAGES
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA3g--TT89iLyEQ5lvwI7mBcIygrls7iCQ",
+  authDomain: "daily-bread-973e9.firebaseapp.com",
+  projectId: "daily-bread-973e9",
+  storageBucket: "daily-bread-973e9.firebasestorage.app",
+  messagingSenderId: "277061281496",
+  appId: "1:277061281496:web:1a72a48469e863e5dcd9ad"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
 const dayImages = {
 Sunday:"images/sunday.jpg",
 Monday:"images/monday.jpg",
@@ -113,83 +81,62 @@ Friday:"images/friday.jpg",
 Saturday:"images/saturday.jpg"
 };
 
-// GET POSTS FROM STORAGE
-function getPosts() {
-    const posts = JSON.parse(localStorage.getItem("devotionals")) || [];
-    const now = new Date();
+async function loadPosts() {
+const container = document.getElementById("posts");
+container.innerHTML = "";
 
-    return posts.filter(post => {
-        if (!post.publishDate || post.publishDate === "") return true;
-        return new Date(post.publishDate) <= now;
-    });
+const snapshot = await getDocs(collection(db, "posts"));
+const now = new Date();
+
+let posts = [];
+
+snapshot.forEach(doc => {
+const p = doc.data();
+if (!p.publishDate || new Date(p.publishDate) <= now) {
+posts.push({ ...p, id: doc.id });
+}
+});
+
+posts.sort((a,b)=> new Date(b.publishDate || 0) - new Date(a.publishDate || 0));
+
+posts.forEach(post => {
+
+const img = post.image && post.image.trim() !== "" 
+? post.image 
+: dayImages[post.day];
+
+container.innerHTML += `
+<div class="card">
+<img src="${img}">
+<h3>${post.day} – ${post.title}</h3>
+<p><strong>${post.scripture}</strong></p>
+<p>${post.preview}</p>
+<button onclick="showFull('${post.id}')">Read Full</button>
+</div>
+`;
+});
 }
 
-// DISPLAY POSTS
-function displayPosts(posts) {
-    const container = document.getElementById("posts");
-    container.innerHTML = "";
+window.showFull = async function(id) {
 
-    if (posts.length === 0) {
-        container.innerHTML = "<p>No devotionals yet.</p>";
-        return;
-    }
+const snapshot = await getDocs(collection(db, "posts"));
+let post;
 
-    posts.sort((a,b) => new Date(b.publishDate || 0) - new Date(a.publishDate || 0));
+snapshot.forEach(doc => {
+if (doc.id === id) post = doc.data();
+});
 
-    posts.forEach(post => {
-
-        const img = (post.image && post.image.trim() !== "")
-            ? post.image
-            : dayImages[post.day] || "";
-
-        container.innerHTML += `
-        <div class="card ${post.day.toLowerCase()}">
-            ${img ? `<img src="${img}">` : ""}
-            <h3>${post.day} – ${post.title}</h3>
-            <p><strong>${post.scripture}</strong></p>
-            <p>${post.preview}</p>
-            <button onclick="showFull(${post.id})">Read Full</button>
-        </div>
-        `;
-    });
+document.getElementById("posts").innerHTML = `
+<div class="card">
+<h2>${post.day} – ${post.title}</h2>
+<p><strong>${post.scripture}</strong></p>
+<p>${post.content}</p>
+<button onclick="location.reload()">← Back</button>
+</div>
+`;
 }
 
-// SHOW FULL POST
-function showFull(id) {
-    const posts = getPosts();
-    const post = posts.find(p => p.id === id);
-
-    const img = (post.image && post.image.trim() !== "")
-        ? post.image
-        : dayImages[post.day] || "";
-
-    document.getElementById("posts").innerHTML = `
-    <div class="card ${post.day.toLowerCase()}">
-        ${img ? `<img src="${img}">` : ""}
-        <h2>${post.day} – ${post.title}</h2>
-        <p><strong>${post.scripture}</strong></p>
-        <p>${post.content}</p>
-        <button onclick="loadHome()">← Back</button>
-    </div>
-    `;
-}
-
-// FILTER POSTS
-function filterPosts(day) {
-    if (day === "All") {
-        displayPosts(getPosts());
-    } else {
-        displayPosts(getPosts().filter(p => p.day === day));
-    }
-}
-
-// LOAD HOME
-function loadHome() {
-    displayPosts(getPosts());
-}
-
-// INITIAL LOAD
-loadHome();
+loadPosts();
 
 </script>
 

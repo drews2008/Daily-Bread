@@ -66,7 +66,11 @@ button {
 </select>
 
 <input id="scripture" placeholder="Scripture">
-<input id="image" placeholder="Image path">
+
+<!-- 🔥 IMAGE UPLOAD -->
+<label>Upload Image</label>
+<input type="file" id="fileUpload">
+
 <input id="publishDate" type="datetime-local">
 
 <textarea id="preview" placeholder="Preview"></textarea>
@@ -85,6 +89,7 @@ button {
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA3g--TT89iLyEQ5lvwI7mBcIygrls7iCQ",
@@ -97,10 +102,33 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 let editId = null;
 
+// 🔥 SAVE WITH IMAGE UPLOAD
 window.savePost = async function() {
+
+try {
+
+const file = document.getElementById("fileUpload").files[0];
+let imageUrl = "";
+
+if (file) {
+    const storageRef = ref(storage, "images/" + Date.now() + "_" + file.name);
+    await uploadBytes(storageRef, file);
+    imageUrl = await getDownloadURL(storageRef);
+}
+
+// If editing and no new file → keep old image
+if (editId && !file) {
+    const snapshot = await getDocs(collection(db, "posts"));
+    snapshot.forEach(docSnap => {
+        if (docSnap.id === editId) {
+            imageUrl = docSnap.data().image || "";
+        }
+    });
+}
 
 const post = {
 title: title.value,
@@ -108,7 +136,7 @@ day: day.value,
 scripture: scripture.value,
 preview: preview.value,
 content: content.value,
-image: image.value,
+image: imageUrl,
 publishDate: publishDate.value
 };
 
@@ -121,8 +149,17 @@ await addDoc(collection(db, "posts"), post);
 
 clearForm();
 displayPosts();
+
+alert("Saved successfully!");
+
+} catch (err) {
+console.error(err);
+alert("Error saving. Check console.");
 }
 
+}
+
+// DISPLAY POSTS
 async function displayPosts() {
 
 const container = document.getElementById("posts");
@@ -145,6 +182,7 @@ container.innerHTML += `
 });
 }
 
+// EDIT
 window.editPost = async function(id) {
 
 const snapshot = await getDocs(collection(db, "posts"));
@@ -160,27 +198,29 @@ day.value = p.day;
 scripture.value = p.scripture;
 preview.value = p.preview;
 content.value = p.content;
-image.value = p.image;
 publishDate.value = p.publishDate;
 }
 });
 }
 
+// DELETE
 window.deletePost = async function(id) {
 await deleteDoc(doc(db, "posts", id));
 displayPosts();
 }
 
+// CLEAR
 function clearForm() {
 title.value="";
 scripture.value="";
 preview.value="";
 content.value="";
-image.value="";
 publishDate.value="";
+document.getElementById("fileUpload").value = "";
 editId=null;
 }
 
+// LOAD
 displayPosts();
 
 </script>

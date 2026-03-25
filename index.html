@@ -14,12 +14,30 @@ header {
     padding:25px;
 }
 
-.logo { width:80px; display:block; margin:0 auto 10px; }
+.logo {
+    width:80px;
+    display:block;
+    margin:0 auto 10px;
+}
 
-nav { background:#222; text-align:center; padding:10px; }
-nav a { color:#f5e6cc; margin:10px; text-decoration:none; font-weight:bold; }
+nav {
+    background:#222;
+    text-align:center;
+    padding:10px;
+}
 
-.section { max-width:900px; margin:auto; padding:20px; }
+nav a {
+    color:#f5e6cc;
+    margin:10px;
+    text-decoration:none;
+    font-weight:bold;
+}
+
+.section {
+    max-width:900px;
+    margin:auto;
+    padding:20px;
+}
 
 .card {
     background:#f5e6cc;
@@ -62,7 +80,7 @@ button {
 </header>
 
 <nav>
-<a 
+<a href="index.html">Home</a>
 </nav>
 
 <div class="section">
@@ -84,7 +102,7 @@ button {
 
 <script>
 
-// DAY IMAGES
+// DEFAULT DAY IMAGES
 const dayImages = {
 Sunday:"images/sunday.jpg",
 Monday:"images/monday.jpg",
@@ -95,86 +113,83 @@ Friday:"images/friday.jpg",
 Saturday:"images/saturday.jpg"
 };
 
-// STARTER POSTS (LOAD ONCE)
-const starterPosts = [
-{
-id:1,
-title:"You’ve Been Challenged!!!",
-day:"Tuesday",
-scripture:"Hebrews 4:12",
-preview:"The Word of God isn’t just important—it’s essential...",
-content:"Don’t just read the Word—let it search you.",
-publishDate:"2026-03-20T08:00"
-}
-];
+// GET POSTS FROM STORAGE
+function getPosts() {
+    const posts = JSON.parse(localStorage.getItem("devotionals")) || [];
+    const now = new Date();
 
-if (!localStorage.getItem("devotionals")) {
-localStorage.setItem("devotionals", JSON.stringify(starterPosts));
+    return posts.filter(post => {
+        if (!post.publishDate || post.publishDate === "") return true;
+        return new Date(post.publishDate) <= now;
+    });
 }
 
-// GET POSTS
-function allPosts() {
-const posts = JSON.parse(localStorage.getItem("devotionals")) || [];
-const now = new Date();
+// DISPLAY POSTS
+function displayPosts(posts) {
+    const container = document.getElementById("posts");
+    container.innerHTML = "";
 
-return posts.filter(p => {
-if (!p.publishDate) return true;
-return new Date(p.publishDate) <= now;
-});
+    if (posts.length === 0) {
+        container.innerHTML = "<p>No devotionals yet.</p>";
+        return;
+    }
+
+    posts.sort((a,b) => new Date(b.publishDate || 0) - new Date(a.publishDate || 0));
+
+    posts.forEach(post => {
+
+        const img = (post.image && post.image.trim() !== "")
+            ? post.image
+            : dayImages[post.day] || "";
+
+        container.innerHTML += `
+        <div class="card ${post.day.toLowerCase()}">
+            ${img ? `<img src="${img}">` : ""}
+            <h3>${post.day} – ${post.title}</h3>
+            <p><strong>${post.scripture}</strong></p>
+            <p>${post.preview}</p>
+            <button onclick="showFull(${post.id})">Read Full</button>
+        </div>
+        `;
+    });
 }
 
-// DISPLAY
-function displayPosts(list) {
-const container = document.getElementById("posts");
-container.innerHTML = "";
-
-list.sort((a,b)=> new Date(b.publishDate) - new Date(a.publishDate));
-
-list.forEach(post => {
-
-const img = post.image && post.image.trim() !== "" 
-? post.image 
-: dayImages[post.day];
-
-container.innerHTML += `
-<div class="card ${post.day.toLowerCase()}">
-<img src="${img}">
-<h3>${post.day} – ${post.title}</h3>
-<p><strong>${post.scripture}</strong></p>
-<p>${post.preview}</p>
-<button onclick="showFull(${post.id})">Read Full</button>
-</div>
-`;
-});
-}
-
-// FULL VIEW
+// SHOW FULL POST
 function showFull(id) {
-const post = allPosts().find(p => p.id === id);
+    const posts = getPosts();
+    const post = posts.find(p => p.id === id);
 
-const img = post.image && post.image.trim() !== "" 
-? post.image 
-: dayImages[post.day];
+    const img = (post.image && post.image.trim() !== "")
+        ? post.image
+        : dayImages[post.day] || "";
 
-document.getElementById("posts").innerHTML = `
-<div class="card ${post.day.toLowerCase()}">
-<img src="${img}">
-<h2>${post.day} – ${post.title}</h2>
-<p><strong>${post.scripture}</strong></p>
-<p>${post.content}</p>
-<button onclick="displayPosts(allPosts())">← Back</button>
-</div>
-`;
+    document.getElementById("posts").innerHTML = `
+    <div class="card ${post.day.toLowerCase()}">
+        ${img ? `<img src="${img}">` : ""}
+        <h2>${post.day} – ${post.title}</h2>
+        <p><strong>${post.scripture}</strong></p>
+        <p>${post.content}</p>
+        <button onclick="loadHome()">← Back</button>
+    </div>
+    `;
 }
 
-// FILTER
+// FILTER POSTS
 function filterPosts(day) {
-if(day==="All") displayPosts(allPosts());
-else displayPosts(allPosts().filter(p => p.day===day));
+    if (day === "All") {
+        displayPosts(getPosts());
+    } else {
+        displayPosts(getPosts().filter(p => p.day === day));
+    }
 }
 
-// LOAD
-displayPosts(allPosts());
+// LOAD HOME
+function loadHome() {
+    displayPosts(getPosts());
+}
+
+// INITIAL LOAD
+loadHome();
 
 </script>
 

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Daily Bread Ministries</title>
+
+<style>
+body { font-family: Georgia; background:#d2b48c; margin:0; }
+
+header {
+    background:black;
+    color:#f5e6cc;
+    text-align:center;
+    padding:25px;
+}
+
+.logo { width:80px; display:block; margin:0 auto 10px; }
+
+nav { background:#222; text-align:center; padding:10px; }
+nav a { color:#f5e6cc; margin:10px; text-decoration:none; font-weight:bold; }
+
+.section { max-width:900px; margin:auto; padding:20px; }
+
+.card {
+    background:#f5e6cc;
+    padding:20px;
+    margin-bottom:20px;
+    border-radius:8px;
+}
+
+.card img {
+    width:60%;
+    display:block;
+    margin:0 auto 10px;
+}
+
+/* DAY THEMES */
+.sunday { border-left:5px solid black; }
+.monday { border-left:5px solid #d97706; }
+.tuesday { border-left:5px solid #7f1d1d; }
+.wednesday { border-left:5px solid #374151; }
+.thursday { border-left:5px solid #111827; }
+.friday { border-left:5px solid #065f46; }
+.saturday { border-left:5px solid #78350f; }
+
+button {
+    background:black;
+    color:#f5e6cc;
+    padding:8px;
+    border:none;
+    cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<img src="images/logo.png" class="logo">
+<h1>Daily Bread Ministries</h1>
+<p>Feeding on the Word daily</p>
+</header>
+
+<nav>
+<a 
+</nav>
+
+<div class="section">
+
+<h2>Filter</h2>
+<button onclick="filterPosts('All')">All</button>
+<button onclick="filterPosts('Sunday')">Sunday</button>
+<button onclick="filterPosts('Monday')">Monday</button>
+<button onclick="filterPosts('Tuesday')">Tuesday</button>
+<button onclick="filterPosts('Wednesday')">Wednesday</button>
+<button onclick="filterPosts('Thursday')">Thursday</button>
+<button onclick="filterPosts('Friday')">Friday</button>
+<button onclick="filterPosts('Saturday')">Saturday</button>
+
+<h2>Devotionals</h2>
+<div id="posts"></div>
+
+</div>
+
+<script>
+
+// DAY IMAGES
+const dayImages = {
+Sunday:"images/sunday.jpg",
+Monday:"images/monday.jpg",
+Tuesday:"images/tuesday.jpg",
+Wednesday:"images/wednesday.jpg",
+Thursday:"images/thursday.jpg",
+Friday:"images/friday.jpg",
+Saturday:"images/saturday.jpg"
+};
+
+// STARTER POSTS (LOAD ONCE)
+const starterPosts = [
+{
+id:1,
+title:"You’ve Been Challenged!!!",
+day:"Tuesday",
+scripture:"Hebrews 4:12",
+preview:"The Word of God isn’t just important—it’s essential...",
+content:"Don’t just read the Word—let it search you.",
+publishDate:"2026-03-20T08:00"
+}
+];
+
+if (!localStorage.getItem("devotionals")) {
+localStorage.setItem("devotionals", JSON.stringify(starterPosts));
+}
+
+// GET POSTS
+function allPosts() {
+const posts = JSON.parse(localStorage.getItem("devotionals")) || [];
+const now = new Date();
+
+return posts.filter(p => {
+if (!p.publishDate) return true;
+return new Date(p.publishDate) <= now;
+});
+}
+
+// DISPLAY
+function displayPosts(list) {
+const container = document.getElementById("posts");
+container.innerHTML = "";
+
+list.sort((a,b)=> new Date(b.publishDate) - new Date(a.publishDate));
+
+list.forEach(post => {
+
+const img = post.image && post.image.trim() !== "" 
+? post.image 
+: dayImages[post.day];
+
+container.innerHTML += `
+<div class="card ${post.day.toLowerCase()}">
+<img src="${img}">
+<h3>${post.day} – ${post.title}</h3>
+<p><strong>${post.scripture}</strong></p>
+<p>${post.preview}</p>
+<button onclick="showFull(${post.id})">Read Full</button>
+</div>
+`;
+});
+}
+
+// FULL VIEW
+function showFull(id) {
+const post = allPosts().find(p => p.id === id);
+
+const img = post.image && post.image.trim() !== "" 
+? post.image 
+: dayImages[post.day];
+
+document.getElementById("posts").innerHTML = `
+<div class="card ${post.day.toLowerCase()}">
+<img src="${img}">
+<h2>${post.day} – ${post.title}</h2>
+<p><strong>${post.scripture}</strong></p>
+<p>${post.content}</p>
+<button onclick="displayPosts(allPosts())">← Back</button>
+</div>
+`;
+}
+
+// FILTER
+function filterPosts(day) {
+if(day==="All") displayPosts(allPosts());
+else displayPosts(allPosts().filter(p => p.day===day));
+}
+
+// LOAD
+displayPosts(allPosts());
+
+</script>
+
+</body>
+</html>

@@ -1,102 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Admin - Daily Bread Ministries</title>
+<script type="module">
 
-<style>
-body {
-    font-family: Georgia;
-    background: #d2b48c;
-    margin: 0;
-}
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-header {
-    background: black;
-    color: #f5e6cc;
-    text-align: center;
-    padding: 20px;
-}
+// YOUR CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyA3g--TT89iLyEQ5lvwI7mBcIygrls7iCQ",
+  authDomain: "daily-bread-973e9.firebaseapp.com",
+  projectId: "daily-bread-973e9",
+  storageBucket: "daily-bread-973e9.firebasestorage.app",
+  messagingSenderId: "277061281496",
+  appId: "1:277061281496:web:1a72a48469e863e5dcd9ad"
+};
 
-.container {
-    max-width: 900px;
-    margin: auto;
-    padding: 20px;
-}
-
-input, textarea, select {
-    width: 100%;
-    margin-bottom: 10px;
-    padding: 8px;
-}
-
-button {
-    background: black;
-    color: #f5e6cc;
-    padding: 10px;
-    border: none;
-    cursor: pointer;
-    margin-right: 5px;
-}
-
-.card {
-    background: #f5e6cc;
-    padding: 15px;
-    margin-top: 10px;
-    border-left: 5px solid black;
-}
-</style>
-
-</head>
-
-<body>
-
-<header>
-    <h1>Admin Panel</h1>
-    <p>Daily Bread Ministries</p>
-</header>
-
-<div class="container">
-
-<h2>Add / Edit Devotional</h2>
-
-<input id="title" placeholder="Title">
-
-<select id="day">
-<option>Sunday</option>
-<option>Monday</option>
-<option>Tuesday</option>
-<option>Wednesday</option>
-<option>Thursday</option>
-<option>Friday</option>
-<option>Saturday</option>
-</select>
-
-<input id="scripture" placeholder="Scripture">
-<input id="image" placeholder="Image path (ex: images/test.jpg)">
-<input id="publishDate" type="datetime-local">
-
-<textarea id="preview" placeholder="Preview text"></textarea>
-<textarea id="content" placeholder="Full devotional"></textarea>
-
-<button onclick="savePost()">Save</button>
-
-<hr>
-
-<h2>Manage Posts</h2>
-<div id="posts"></div>
-
-</div>
-
-<script>
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 let editId = null;
 
-// SAVE / UPDATE
-function savePost() {
+// SAVE
+window.savePost = async function() {
 
 const post = {
-id: editId || Date.now(),
 title: document.getElementById("title").value,
 day: document.getElementById("day").value,
 scripture: document.getElementById("scripture").value,
@@ -106,90 +31,80 @@ image: document.getElementById("image").value,
 publishDate: document.getElementById("publishDate").value
 };
 
-let posts = JSON.parse(localStorage.getItem("devotionals")) || [];
-
 if (editId) {
-posts = posts.map(p => p.id === editId ? post : p);
+await updateDoc(doc(db, "posts", editId), post);
 editId = null;
 } else {
-posts.push(post);
+await addDoc(collection(db, "posts"), post);
 }
-
-localStorage.setItem("devotionals", JSON.stringify(posts));
 
 clearForm();
 displayPosts();
 }
 
-// DISPLAY POSTS
-function displayPosts() {
+// DISPLAY
+async function displayPosts() {
 
 const container = document.getElementById("posts");
 container.innerHTML = "";
 
-let posts = JSON.parse(localStorage.getItem("devotionals")) || [];
+const snapshot = await getDocs(collection(db, "posts"));
 
-posts.sort((a,b) => new Date(b.publishDate || b.date) - new Date(a.publishDate || a.date));
-
-posts.forEach(post => {
+snapshot.forEach(docSnap => {
+const p = docSnap.data();
 
 container.innerHTML += `
 <div class="card">
-<h3>${post.title}</h3>
-<p><strong>${post.day}</strong> | ${post.scripture}</p>
-<p><small>Publishes: ${post.publishDate || "Immediately"}</small></p>
+<h3>${p.title}</h3>
+<p>${p.day} | ${p.scripture}</p>
 
-<button onclick="editPost(${post.id})">Edit</button>
-<button onclick="deletePost(${post.id})">Delete</button>
+<button onclick="editPost('${docSnap.id}')">Edit</button>
+<button onclick="deletePost('${docSnap.id}')">Delete</button>
 </div>
 `;
 });
 }
 
 // EDIT
-function editPost(id) {
+window.editPost = async function(id) {
 
-const posts = JSON.parse(localStorage.getItem("devotionals")) || [];
-const post = posts.find(p => p.id === id);
+const snapshot = await getDocs(collection(db, "posts"));
+
+snapshot.forEach(docSnap => {
+if (docSnap.id === id) {
+const p = docSnap.data();
 
 editId = id;
 
-document.getElementById("title").value = post.title;
-document.getElementById("day").value = post.day;
-document.getElementById("scripture").value = post.scripture;
-document.getElementById("preview").value = post.preview;
-document.getElementById("content").value = post.content;
-document.getElementById("image").value = post.image;
-document.getElementById("publishDate").value = post.publishDate;
+title.value = p.title;
+day.value = p.day;
+scripture.value = p.scripture;
+preview.value = p.preview;
+content.value = p.content;
+image.value = p.image;
+publishDate.value = p.publishDate;
+}
+});
 }
 
 // DELETE
-function deletePost(id) {
-
-let posts = JSON.parse(localStorage.getItem("devotionals")) || [];
-
-posts = posts.filter(p => p.id !== id);
-
-localStorage.setItem("devotionals", JSON.stringify(posts));
-
+window.deletePost = async function(id) {
+await deleteDoc(doc(db, "posts", id));
 displayPosts();
 }
 
-// CLEAR FORM
+// CLEAR
 function clearForm() {
-document.getElementById("title").value = "";
-document.getElementById("scripture").value = "";
-document.getElementById("preview").value = "";
-document.getElementById("content").value = "";
-document.getElementById("image").value = "";
-document.getElementById("publishDate").value = "";
-editId = null;
+title.value="";
+scripture.value="";
+preview.value="";
+content.value="";
+image.value="";
+publishDate.value="";
+editId=null;
 }
 
 // LOAD
 displayPosts();
 
 </script>
-
-</body>
-</html>

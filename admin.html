@@ -1,9 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin - Daily Bread</title>
+
+<style>
+body { font-family: Georgia; background:#d2b48c; margin:0; }
+
+header {
+    background:black;
+    color:#f5e6cc;
+    text-align:center;
+    padding:20px;
+}
+
+.container {
+    max-width:900px;
+    margin:auto;
+    padding:20px;
+}
+
+input, textarea, select {
+    width:100%;
+    margin-bottom:10px;
+    padding:8px;
+}
+
+button {
+    background:black;
+    color:#f5e6cc;
+    padding:10px;
+    border:none;
+    cursor:pointer;
+    margin-right:5px;
+}
+
+.card {
+    background:#f5e6cc;
+    padding:15px;
+    margin-top:10px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>Admin Panel</h1>
+</header>
+
+<div class="container">
+
+<h2>Add / Edit Devotional</h2>
+
+<input id="title" placeholder="Title">
+
+<select id="day">
+<option>Sunday</option>
+<option>Monday</option>
+<option>Tuesday</option>
+<option>Wednesday</option>
+<option>Thursday</option>
+<option>Friday</option>
+<option>Saturday</option>
+</select>
+
+<input id="scripture" placeholder="Scripture">
+<input id="image" placeholder="Image path">
+<input id="publishDate" type="datetime-local">
+
+<textarea id="preview" placeholder="Preview"></textarea>
+<textarea id="content" placeholder="Full devotional"></textarea>
+
+<button onclick="savePost()">Save</button>
+
+<hr>
+
+<h2>Manage Posts</h2>
+<div id="posts"></div>
+
+</div>
+
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// YOUR CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyA3g--TT89iLyEQ5lvwI7mBcIygrls7iCQ",
   authDomain: "daily-bread-973e9.firebaseapp.com",
@@ -18,17 +100,16 @@ const db = getFirestore(app);
 
 let editId = null;
 
-// SAVE
 window.savePost = async function() {
 
 const post = {
-title: document.getElementById("title").value,
-day: document.getElementById("day").value,
-scripture: document.getElementById("scripture").value,
-preview: document.getElementById("preview").value,
-content: document.getElementById("content").value,
-image: document.getElementById("image").value,
-publishDate: document.getElementById("publishDate").value
+title: title.value,
+day: day.value,
+scripture: scripture.value,
+preview: preview.value,
+content: content.value,
+image: image.value,
+publishDate: publishDate.value
 };
 
 if (editId) {
@@ -42,7 +123,6 @@ clearForm();
 displayPosts();
 }
 
-// DISPLAY
 async function displayPosts() {
 
 const container = document.getElementById("posts");
@@ -65,7 +145,6 @@ container.innerHTML += `
 });
 }
 
-// EDIT
 window.editPost = async function(id) {
 
 const snapshot = await getDocs(collection(db, "posts"));
@@ -87,13 +166,11 @@ publishDate.value = p.publishDate;
 });
 }
 
-// DELETE
 window.deletePost = async function(id) {
 await deleteDoc(doc(db, "posts", id));
 displayPosts();
 }
 
-// CLEAR
 function clearForm() {
 title.value="";
 scripture.value="";
@@ -104,7 +181,9 @@ publishDate.value="";
 editId=null;
 }
 
-// LOAD
 displayPosts();
 
 </script>
+
+</body>
+</html>

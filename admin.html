@@ -67,7 +67,6 @@ button {
 
 <input id="scripture" placeholder="Scripture">
 
-<!-- 🔥 IMAGE UPLOAD -->
 <label>Upload Image</label>
 <input type="file" id="fileUpload">
 
@@ -88,7 +87,7 @@ button {
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 const firebaseConfig = {
@@ -105,29 +104,28 @@ const db = getFirestore(app);
 const storage = getStorage(app);
 
 let editId = null;
+let currentImage = "";
 
-// 🔥 SAVE WITH IMAGE UPLOAD
+// ✅ SAVE FUNCTION (FIXED)
 window.savePost = async function() {
 
 try {
 
+console.log("Saving post...");
+
 const file = document.getElementById("fileUpload").files[0];
-let imageUrl = "";
+let imageUrl = currentImage;
 
+// 🔥 Upload safely (won’t break save if it fails)
 if (file) {
-    const storageRef = ref(storage, "images/" + Date.now() + "_" + file.name);
-    await uploadBytes(storageRef, file);
-    imageUrl = await getDownloadURL(storageRef);
-}
-
-// If editing and no new file → keep old image
-if (editId && !file) {
-    const snapshot = await getDocs(collection(db, "posts"));
-    snapshot.forEach(docSnap => {
-        if (docSnap.id === editId) {
-            imageUrl = docSnap.data().image || "";
-        }
-    });
+    try {
+        const storageRef = ref(storage, "images/" + Date.now() + "_" + file.name);
+        await uploadBytes(storageRef, file);
+        imageUrl = await getDownloadURL(storageRef);
+        console.log("Image uploaded");
+    } catch (uploadErr) {
+        console.warn("Image upload failed:", uploadErr);
+    }
 }
 
 const post = {
@@ -136,15 +134,17 @@ day: day.value,
 scripture: scripture.value,
 preview: preview.value,
 content: content.value,
-image: imageUrl,
+image: imageUrl || "",
 publishDate: publishDate.value
 };
 
 if (editId) {
 await updateDoc(doc(db, "posts", editId), post);
+console.log("Updated post");
 editId = null;
 } else {
 await addDoc(collection(db, "posts"), post);
+console.log("Created post");
 }
 
 clearForm();
@@ -153,13 +153,13 @@ displayPosts();
 alert("Saved successfully!");
 
 } catch (err) {
-console.error(err);
-alert("Error saving. Check console.");
+console.error("SAVE ERROR:", err);
+alert("Save failed. Open console (F12).");
 }
 
 }
 
-// DISPLAY POSTS
+// ✅ DISPLAY
 async function displayPosts() {
 
 const container = document.getElementById("posts");
@@ -182,16 +182,17 @@ container.innerHTML += `
 });
 }
 
-// EDIT
+// ✅ EDIT (FIXED IMAGE HANDLING)
 window.editPost = async function(id) {
 
-const snapshot = await getDocs(collection(db, "posts"));
+const docRef = doc(db, "posts", id);
+const docSnap = await getDoc(docRef);
 
-snapshot.forEach(docSnap => {
-if (docSnap.id === id) {
+if (docSnap.exists()) {
 const p = docSnap.data();
 
 editId = id;
+currentImage = p.image || "";
 
 title.value = p.title;
 day.value = p.day;
@@ -200,10 +201,9 @@ preview.value = p.preview;
 content.value = p.content;
 publishDate.value = p.publishDate;
 }
-});
 }
 
-// DELETE
+// ✅ DELETE
 window.deletePost = async function(id) {
 await deleteDoc(doc(db, "posts", id));
 displayPosts();
@@ -216,8 +216,9 @@ scripture.value="";
 preview.value="";
 content.value="";
 publishDate.value="";
-document.getElementById("fileUpload").value = "";
+document.getElementById("fileUpload").value="";
 editId=null;
+currentImage="";
 }
 
 // LOAD

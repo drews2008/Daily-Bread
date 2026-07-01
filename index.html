@@ -42,6 +42,34 @@ header {
     background: #333;
 }
 
+.verse-of-day {
+    background: linear-gradient(135deg, #8b4513 0%, #a0522d 100%);
+    color: #f5e6cc;
+    padding: 30px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.verse-of-day h2 {
+    margin: 0 0 15px 0;
+    font-size: 1.5em;
+    letter-spacing: 1px;
+}
+
+.verse-text {
+    font-size: 1.3em;
+    font-style: italic;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.verse-reference {
+    font-size: 1.1em;
+    opacity: 0.9;
+}
+
 .card {
     background:#f5e6cc;
     padding:20px;
@@ -62,6 +90,16 @@ button {
     border:none;
     cursor:pointer;
 }
+
+@media (max-width: 768px) {
+    .verse-of-day {
+        padding: 20px;
+    }
+    
+    .verse-text {
+        font-size: 1.1em;
+    }
+}
 </style>
 </head>
 
@@ -78,6 +116,12 @@ button {
     <button onclick="window.location.href='index.html'">Home</button>
     <button onclick="window.location.href='calendar.html'">Calendar</button>
     <button onclick="window.location.href='admin.html'">Admin</button>
+</div>
+
+<div class="verse-of-day">
+    <h2>Verse of the Day</h2>
+    <div class="verse-text" id="verseText">Loading...</div>
+    <div class="verse-reference" id="verseReference"></div>
 </div>
 
 <h2>Latest Devotionals</h2>
@@ -110,6 +154,33 @@ Thursday:"images/thursday.jpg",
 Friday:"images/friday.jpg",
 Saturday:"images/saturday.jpg"
 };
+
+async function loadVerseOfDay() {
+const snapshot = await getDocs(collection(db, "posts"));
+const now = new Date();
+
+let posts = [];
+
+snapshot.forEach(doc => {
+const p = doc.data();
+if (!p.publishDate || new Date(p.publishDate) <= now) {
+posts.push({ ...p, id: doc.id });
+}
+});
+
+if (posts.length === 0) {
+document.getElementById("verseText").textContent = "No verse available today.";
+return;
+}
+
+// Get verse of the day based on today's date
+const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
+const verseIndex = dayOfYear % posts.length;
+const verseOfDay = posts[verseIndex];
+
+document.getElementById("verseText").textContent = `"${verseOfDay.scripture}"`;
+document.getElementById("verseReference").textContent = verseOfDay.title;
+}
 
 async function loadPosts() {
 const container = document.getElementById("posts");
@@ -169,6 +240,8 @@ document.getElementById("posts").innerHTML = `
 `;
 }
 
+// Load verse of the day and posts on page load
+loadVerseOfDay();
 loadPosts();
 
 </script>

@@ -346,16 +346,6 @@ const db = getFirestore(app);
 
 let allPosts = [];
 
-const dayImages = {
-    Sunday:"images/sunday.jpg",
-    Monday:"images/monday.jpg",
-    Tuesday:"images/tuesday.jpg",
-    Wednesday:"images/wednesday.jpg",
-    Thursday:"images/thursday.jpg",
-    Friday:"images/friday.jpg",
-    Saturday:"images/saturday.jpg"
-};
-
 async function loadAllDevotionals() {
     const container = document.getElementById("calendarContainer");
     container.innerHTML = "";
@@ -388,10 +378,6 @@ function renderCalendar(posts) {
     }
     
     container.innerHTML = posts.map(post => {
-        const img = post.image && post.image.trim() !== "" 
-            ? post.image 
-            : dayImages[post.day];
-        
         const publishDate = post.publishDate ? new Date(post.publishDate).toLocaleDateString() : 'Not published';
         
         return `
@@ -412,12 +398,8 @@ window.showFullDevotional = function(id) {
     const post = allPosts.find(p => p.id === id);
     if (post) {
         const devotionalContent = document.getElementById("devotionalContent");
-        const img = post.image && post.image.trim() !== "" 
-            ? post.image 
-            : dayImages[post.day];
         
         devotionalContent.innerHTML = `
-            <img src="${img}" style="width:100%; border-radius:8px; margin-bottom:15px;">
             <h2>${post.day} – ${post.title}</h2>
             <p><strong>Scripture: ${post.scripture}</strong></p>
             <p style="color:#666; font-size:0.9em;">${post.publishDate ? 'Published: ' + new Date(post.publishDate).toLocaleDateString() : ''}</p>

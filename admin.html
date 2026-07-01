@@ -20,25 +20,107 @@ header {
     padding:20px;
 }
 
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.tabs button {
+    background: black;
+    color: #f5e6cc;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 1em;
+}
+
+.tabs button.active {
+    background: #a0522d;
+}
+
+.tabs button:hover {
+    background: #333;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
 input, textarea, select {
     width:100%;
     margin-bottom:10px;
     padding:8px;
+    box-sizing: border-box;
 }
 
 button {
     background:black;
     color:#f5e6cc;
-    padding:10px;
+    padding:10px 20px;
     border:none;
     cursor:pointer;
     margin-right:5px;
+    margin-bottom: 10px;
+}
+
+button:hover {
+    background: #333;
 }
 
 .card {
     background:#f5e6cc;
     padding:15px;
     margin-top:10px;
+    border-radius: 4px;
+}
+
+hr {
+    margin: 20px 0;
+    border: 1px solid #8b4513;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: black;
+}
+
+.team-member-card {
+    background: #f5e6cc;
+    padding: 15px;
+    margin-top: 10px;
+    border-radius: 4px;
+    border-left: 4px solid black;
+}
+
+.team-member-card img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 15px;
+    float: left;
+}
+
+.team-member-card h4 {
+    margin: 0 0 5px 0;
+}
+
+.team-member-card p {
+    margin: 0 0 10px 0;
+    clear: both;
 }
 </style>
 </head>
@@ -51,36 +133,98 @@ button {
 
 <div class="container">
 
+<div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('devotionals')">Devotionals</button>
+    <button class="tab-btn" onclick="switchTab('team')">Team Members</button>
+</div>
+
+<!-- DEVOTIONALS TAB -->
+<div id="devotionals" class="tab-content active">
+
 <h2>Add / Edit Devotional</h2>
 
-<input id="title" placeholder="Title">
+<div class="form-group">
+    <label>Title</label>
+    <input id="title" placeholder="Title">
+</div>
 
-<select id="day">
-<option>Sunday</option>
-<option>Monday</option>
-<option>Tuesday</option>
-<option>Wednesday</option>
-<option>Thursday</option>
-<option>Friday</option>
-<option>Saturday</option>
-</select>
+<div class="form-group">
+    <label>Day</label>
+    <select id="day">
+        <option>Sunday</option>
+        <option>Monday</option>
+        <option>Tuesday</option>
+        <option>Wednesday</option>
+        <option>Thursday</option>
+        <option>Friday</option>
+        <option>Saturday</option>
+    </select>
+</div>
 
-<input id="scripture" placeholder="Scripture">
+<div class="form-group">
+    <label>Scripture</label>
+    <input id="scripture" placeholder="Scripture">
+</div>
 
-<label>Upload Image</label>
-<input type="file" id="fileUpload">
+<div class="form-group">
+    <label>Upload Image</label>
+    <input type="file" id="fileUpload">
+</div>
 
-<input id="publishDate" type="datetime-local">
+<div class="form-group">
+    <label>Publish Date</label>
+    <input id="publishDate" type="datetime-local">
+</div>
 
-<textarea id="preview" placeholder="Preview"></textarea>
-<textarea id="content" placeholder="Full devotional"></textarea>
+<div class="form-group">
+    <label>Preview</label>
+    <textarea id="preview" placeholder="Preview" rows="3"></textarea>
+</div>
 
-<button onclick="savePost()">Save</button>
+<div class="form-group">
+    <label>Full Devotional</label>
+    <textarea id="content" placeholder="Full devotional" rows="5"></textarea>
+</div>
+
+<button onclick="savePost()">Save Devotional</button>
+<button onclick="clearForm()">Clear</button>
 
 <hr>
 
 <h2>Manage Posts</h2>
 <div id="posts"></div>
+
+</div>
+
+<!-- TEAM MEMBERS TAB -->
+<div id="team" class="tab-content">
+
+<h2>Add / Edit Team Member</h2>
+
+<div class="form-group">
+    <label>Name</label>
+    <input id="memberName" placeholder="Full Name">
+</div>
+
+<div class="form-group">
+    <label>Bio</label>
+    <textarea id="memberBio" placeholder="Team member bio" rows="4"></textarea>
+</div>
+
+<div class="form-group">
+    <label>Upload Image</label>
+    <input type="file" id="memberImageUpload">
+</div>
+
+<button onclick="saveTeamMember()">Save Team Member</button>
+<button onclick="clearTeamForm()">Clear</button>
+
+<hr>
+
+<h2>Manage Team Members</h2>
+<div id="teamMembers"></div>
+
+</div>
 
 </div>
 
@@ -105,18 +249,31 @@ const storage = getStorage(app);
 
 let editId = null;
 let currentImage = "";
+let editTeamId = null;
+let currentTeamImage = "";
 
-// ✅ SAVE FUNCTION (FIXED)
+// ===== TAB SWITCHING =====
+window.switchTab = function(tabName) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    
+    document.getElementById(tabName).classList.add('active');
+    event.target.classList.add('active');
+    
+    if (tabName === 'team') {
+        displayTeamMembers();
+    }
+}
+
+// ===== DEVOTIONAL FUNCTIONS =====
+
 window.savePost = async function() {
-
 try {
-
 console.log("Saving post...");
 
 const file = document.getElementById("fileUpload").files[0];
 let imageUrl = currentImage;
 
-// 🔥 Upload safely (won’t break save if it fails)
 if (file) {
     try {
         const storageRef = ref(storage, "images/" + Date.now() + "_" + file.name);
@@ -129,39 +286,35 @@ if (file) {
 }
 
 const post = {
-title: title.value,
-day: day.value,
-scripture: scripture.value,
-preview: preview.value,
-content: content.value,
+title: document.getElementById("title").value,
+day: document.getElementById("day").value,
+scripture: document.getElementById("scripture").value,
+preview: document.getElementById("preview").value,
+content: document.getElementById("content").value,
 image: imageUrl || "",
-publishDate: publishDate.value
+publishDate: document.getElementById("publishDate").value
 };
 
 if (editId) {
-await updateDoc(doc(db, "posts", editId), post);
-console.log("Updated post");
-editId = null;
+    await updateDoc(doc(db, "posts", editId), post);
+    console.log("Updated post");
+    editId = null;
 } else {
-await addDoc(collection(db, "posts"), post);
-console.log("Created post");
+    await addDoc(collection(db, "posts"), post);
+    console.log("Created post");
 }
 
 clearForm();
 displayPosts();
-
 alert("Saved successfully!");
 
 } catch (err) {
 console.error("SAVE ERROR:", err);
 alert("Save failed. Open console (F12).");
 }
-
 }
 
-// ✅ DISPLAY
 async function displayPosts() {
-
 const container = document.getElementById("posts");
 container.innerHTML = "";
 
@@ -182,9 +335,7 @@ container.innerHTML += `
 });
 }
 
-// ✅ EDIT (FIXED IMAGE HANDLING)
 window.editPost = async function(id) {
-
 const docRef = doc(db, "posts", id);
 const docSnap = await getDoc(docRef);
 
@@ -194,31 +345,142 @@ const p = docSnap.data();
 editId = id;
 currentImage = p.image || "";
 
-title.value = p.title;
-day.value = p.day;
-scripture.value = p.scripture;
-preview.value = p.preview;
-content.value = p.content;
-publishDate.value = p.publishDate;
+document.getElementById("title").value = p.title;
+document.getElementById("day").value = p.day;
+document.getElementById("scripture").value = p.scripture;
+document.getElementById("preview").value = p.preview;
+document.getElementById("content").value = p.content;
+document.getElementById("publishDate").value = p.publishDate;
 }
 }
 
-// ✅ DELETE
 window.deletePost = async function(id) {
 await deleteDoc(doc(db, "posts", id));
 displayPosts();
 }
 
-// CLEAR
 function clearForm() {
-title.value="";
-scripture.value="";
-preview.value="";
-content.value="";
-publishDate.value="";
+document.getElementById("title").value="";
+document.getElementById("scripture").value="";
+document.getElementById("preview").value="";
+document.getElementById("content").value="";
+document.getElementById("publishDate").value="";
 document.getElementById("fileUpload").value="";
 editId=null;
 currentImage="";
+}
+
+// ===== TEAM MEMBER FUNCTIONS =====
+
+window.saveTeamMember = async function() {
+try {
+console.log("Saving team member...");
+
+const file = document.getElementById("memberImageUpload").files[0];
+let imageUrl = currentTeamImage;
+
+if (file) {
+    try {
+        const storageRef = ref(storage, "team_images/" + Date.now() + "_" + file.name);
+        await uploadBytes(storageRef, file);
+        imageUrl = await getDownloadURL(storageRef);
+        console.log("Team image uploaded");
+    } catch (uploadErr) {
+        console.warn("Image upload failed:", uploadErr);
+    }
+}
+
+const member = {
+name: document.getElementById("memberName").value,
+bio: document.getElementById("memberBio").value,
+image: imageUrl || ""
+};
+
+if (!member.name) {
+    alert("Please enter a name");
+    return;
+}
+
+if (editTeamId) {
+    await updateDoc(doc(db, "teamMembers", editTeamId), member);
+    console.log("Updated team member");
+    editTeamId = null;
+} else {
+    await addDoc(collection(db, "teamMembers"), member);
+    console.log("Created team member");
+}
+
+clearTeamForm();
+displayTeamMembers();
+alert("Team member saved successfully!");
+
+} catch (err) {
+console.error("SAVE ERROR:", err);
+alert("Save failed. Open console (F12).");
+}
+}
+
+async function displayTeamMembers() {
+const container = document.getElementById("teamMembers");
+container.innerHTML = "";
+
+const snapshot = await getDocs(collection(db, "teamMembers"));
+
+if (snapshot.empty) {
+    container.innerHTML = "<p>No team members yet.</p>";
+    return;
+}
+
+snapshot.forEach(docSnap => {
+const m = docSnap.data();
+const imageHtml = m.image ? `<img src="${m.image}" alt="${m.name}">` : "";
+
+container.innerHTML += `
+<div class="team-member-card">
+    ${imageHtml}
+    <h4>${m.name}</h4>
+    <p>${m.bio || "No bio"}</p>
+    <button onclick="editTeamMember('${docSnap.id}')">Edit</button>
+    <button onclick="deleteTeamMember('${docSnap.id}')">Delete</button>
+</div>
+`;
+});
+}
+
+window.editTeamMember = async function(id) {
+const docRef = doc(db, "teamMembers", id);
+const docSnap = await getDoc(docRef);
+
+if (docSnap.exists()) {
+const m = docSnap.data();
+
+editTeamId = id;
+currentTeamImage = m.image || "";
+
+document.getElementById("memberName").value = m.name;
+document.getElementById("memberBio").value = m.bio || "";
+
+// Switch to team tab
+document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+document.getElementById("team").classList.add('active');
+document.querySelectorAll('.tab-btn')[1].classList.add('active');
+}
+}
+
+window.deleteTeamMember = async function(id) {
+if (confirm("Delete this team member?")) {
+    await deleteDoc(doc(db, "teamMembers", id));
+    displayTeamMembers();
+}
+}
+
+function clearTeamForm() {
+document.getElementById("memberName").value="";
+document.getElementById("memberBio").value="";
+document.getElementById("memberImageUpload").value="";
+editTeamId=null;
+currentTeamImage="";
 }
 
 // LOAD

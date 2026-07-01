@@ -77,10 +77,10 @@ button {
 <div class="nav-buttons">
     <button onclick="window.location.href='index.html'">Home</button>
     <button onclick="window.location.href='calendar.html'">Calendar</button>
-    
+    <button onclick="window.location.href='admin.html'">Admin</button>
 </div>
 
-<h2>Devotionals</h2>
+<h2>Latest Devotionals</h2>
 <div id="posts"></div>
 </div>
 
@@ -129,7 +129,10 @@ posts.push({ ...p, id: doc.id });
 
 posts.sort((a,b)=> new Date(b.publishDate || 0) - new Date(a.publishDate || 0));
 
-posts.forEach(post => {
+// Only show the last 3 devotionals
+const recentPosts = posts.slice(0, 3);
+
+recentPosts.forEach(post => {
 
 const img = post.image && post.image.trim() !== "" 
 ? post.image 

@@ -113,9 +113,7 @@ button {
 
 <div class="section">
 <div class="nav-buttons">
-    <button onclick="window.location.href='index.html'">Home</button>
     <button onclick="window.location.href='calendar.html'">Calendar</button>
-    <button onclick="window.location.href='admin.html'">Admin</button>
 </div>
 
 <div class="verse-of-day">
@@ -156,6 +154,7 @@ Saturday:"images/saturday.jpg"
 };
 
 async function loadVerseOfDay() {
+try {
 const snapshot = await getDocs(collection(db, "posts"));
 const now = new Date();
 
@@ -173,13 +172,25 @@ document.getElementById("verseText").textContent = "No verse available today.";
 return;
 }
 
-// Get verse of the day based on today's date
-const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
+// Get verse of the day based on today's date using a simpler method
+const startOfYear = new Date(now.getFullYear(), 0, 0);
+const diff = now - startOfYear;
+const oneDay = 1000 * 60 * 60 * 24;
+const dayOfYear = Math.floor(diff / oneDay);
 const verseIndex = dayOfYear % posts.length;
 const verseOfDay = posts[verseIndex];
 
+console.log("Posts available:", posts.length);
+console.log("Day of year:", dayOfYear);
+console.log("Verse index:", verseIndex);
+console.log("Selected verse:", verseOfDay);
+
 document.getElementById("verseText").textContent = `"${verseOfDay.scripture}"`;
 document.getElementById("verseReference").textContent = verseOfDay.title;
+} catch (error) {
+console.error("Error loading verse of the day:", error);
+document.getElementById("verseText").textContent = "Error loading verse.";
+}
 }
 
 async function loadPosts() {

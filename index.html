@@ -143,16 +143,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const dayImages = {
-Sunday:"images/sunday.jpg",
-Monday:"images/monday.jpg",
-Tuesday:"images/tuesday.jpg",
-Wednesday:"images/wednesday.jpg",
-Thursday:"images/thursday.jpg",
-Friday:"images/friday.jpg",
-Saturday:"images/saturday.jpg"
-};
-
 async function loadVerseOfDay() {
 try {
 const snapshot = await getDocs(collection(db, "posts"));
@@ -218,11 +208,11 @@ recentPosts.forEach(post => {
 
 const img = post.image && post.image.trim() !== "" 
 ? post.image 
-: dayImages[post.day];
+: "";
 
 container.innerHTML += `
 <div class="card">
-<img src="${img}">
+${img ? `<img src="${img}">` : ""}
 <h3>${post.day} – ${post.title}</h3>
 <p><strong>${post.scripture}</strong></p>
 <p>${post.preview}</p>

@@ -1,90 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Admin - Daily Bread</title>
+<meta charset="UTF-8">
+<title>Admin - Daily Bread</title>
 
-    <style>
-        body { font-family: Georgia; background:#d2b48c; margin:0; }
+<style>
+body { font-family: Georgia; background:#d2b48c; margin:0; }
 
-        header {
-            background:black;
-            color:#f5e6cc;
-            text-align:center;
-            padding:20px;
-        }
+header {
+    background:black;
+    color:#f5e6cc;
+    text-align:center;
+    padding:20px;
+}
 
-        .container {
-            max-width:900px;
-            margin:auto;
-            padding:20px;
-        }
+.container {
+    max-width:900px;
+    margin:auto;
+    padding:20px;
+}
 
-        .tabs {
-            display:flex;
-            gap:10px;
-            margin-bottom:20px;
-            flex-wrap:wrap;
-        }
+.tabs {
+    display:flex;
+    gap:10px;
+    margin-bottom:20px;
+    flex-wrap:wrap;
+}
 
-        .tabs button {
-            background:black;
-            color:#f5e6cc;
-            padding:10px 20px;
-            border:none;
-            cursor:pointer;
-            border-radius:4px;
-        }
+.tabs button {
+    background:black;
+    color:#f5e6cc;
+    padding:10px 20px;
+    border:none;
+    cursor:pointer;
+    border-radius:4px;
+}
 
-        .tabs button.active {
-            background:#a0522d;
-        }
+.tabs button.active {
+    background:#a0522d;
+}
 
-        .tab-content { display:none; }
-        .tab-content.active { display:block; }
+.tab-content { display:none; }
+.tab-content.active { display:block; }
 
-        input, textarea, select {
-            width:100%;
-            margin-bottom:10px;
-            padding:8px;
-            box-sizing:border-box;
-        }
+input, textarea, select {
+    width:100%;
+    margin-bottom:10px;
+    padding:8px;
+    box-sizing:border-box;
+}
 
-        button {
-            background:black;
-            color:#f5e6cc;
-            padding:10px 20px;
-            border:none;
-            cursor:pointer;
-            margin-right:5px;
-            margin-bottom:10px;
-        }
+button {
+    background:black;
+    color:#f5e6cc;
+    padding:10px 20px;
+    border:none;
+    cursor:pointer;
+    margin-right:5px;
+    margin-bottom:10px;
+}
 
-        button:hover { background:#333; }
+button:hover { background:#333; }
 
-        .card {
-            background:#f5e6cc;
-            padding:15px;
-            margin-top:10px;
-            border-radius:4px;
-        }
+.card {
+    background:#f5e6cc;
+    padding:15px;
+    margin-top:10px;
+    border-radius:4px;
+}
 
-        hr { margin:20px 0; border:1px solid #8b4513; }
+hr { margin:20px 0; border:1px solid #8b4513; }
 
-        label {
-            display:block;
-            margin-bottom:5px;
-            font-weight:bold;
-        }
-
-        .team-member-card {
-            background:#f5e6cc;
-            padding:15px;
-            margin-top:10px;
-            border-radius:4px;
-            border-left:4px solid black;
-        }
-    </style>
+label {
+    display:block;
+    margin-bottom:5px;
+    font-weight:bold;
+}
+</style>
 </head>
 
 <body>
@@ -97,9 +89,9 @@
 
     <!-- TABS -->
     <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('devotionals')">Devotionals</button>
-        <button class="tab-btn" onclick="switchTab('verses')">Verses</button>
-        <button class="tab-btn" onclick="switchTab('team')">Team</button>
+        <button class="tab-btn active" onclick="switchTab('devotionals', this)">Devotionals</button>
+        <button class="tab-btn" onclick="switchTab('verses', this)">Verses</button>
+        <button class="tab-btn" onclick="switchTab('team', this)">Team</button>
     </div>
 
     <!-- ================= DEVOTIONALS ================= -->
@@ -139,7 +131,7 @@
         <div id="posts"></div>
     </div>
 
-    <!-- ================= VERSES (NEW) ================= -->
+    <!-- ================= VERSES ================= -->
     <div id="verses" class="tab-content">
         <h2>Verse Scheduler (KJV)</h2>
 
@@ -187,8 +179,7 @@ import {
     getDocs,
     deleteDoc,
     doc,
-    updateDoc,
-    getDoc
+    updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -202,25 +193,31 @@ const db = getFirestore(app);
 
 let editId = null;
 
-/* ================= TABS ================= */
-window.switchTab = function(tab) {
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+/* ================= SAFE TAB SWITCH ================= */
+window.switchTab = function(tab, btn) {
 
-    document.getElementById(tab).classList.add('active');
-    event.target.classList.add('active');
+    document.querySelectorAll('.tab-content')
+        .forEach(t => t.classList.remove('active'));
+
+    document.querySelectorAll('.tab-btn')
+        .forEach(b => b.classList.remove('active'));
+
+    const target = document.getElementById(tab);
+    if (target) target.classList.add('active');
+
+    if (btn) btn.classList.add('active');
 };
 
 /* ================= DEVOTIONALS ================= */
 window.savePost = async function() {
 
     const post = {
-        title: title.value,
-        day: day.value,
-        scripture: scripture.value,
-        preview: preview.value,
-        content: content.value,
-        publishDate: publishDate.value || ""
+        title: document.getElementById("title").value,
+        day: document.getElementById("day").value,
+        scripture: document.getElementById("scripture").value,
+        preview: document.getElementById("preview").value,
+        content: document.getElementById("content").value,
+        publishDate: document.getElementById("publishDate").value || ""
     };
 
     if (editId) {
@@ -235,15 +232,16 @@ window.savePost = async function() {
 
 async function loadPosts() {
     const snap = await getDocs(collection(db,"posts"));
-    posts.innerHTML = "";
+    const container = document.getElementById("posts");
+    container.innerHTML = "";
 
     snap.forEach(d => {
         const p = d.data();
 
-        posts.innerHTML += `
+        container.innerHTML += `
         <div class="card">
-            <b>${p.title}</b><br>
-            ${p.scripture}<br>
+            <b>${p.title || ""}</b><br>
+            ${p.scripture || ""}<br>
             <button onclick="deletePost('${d.id}')">Delete</button>
         </div>`;
     });
@@ -254,26 +252,29 @@ window.deletePost = async function(id) {
     loadPosts();
 };
 
-/* ================= VERSES (KJV) ================= */
+/* ================= VERSES (KJV SAFE) ================= */
 window.fetchVerse = async function() {
 
-    const ref = verseRef.value;
+    const ref = document.getElementById("verseRef").value;
+
+    if (!ref) return alert("Enter a reference");
 
     const res = await fetch(
-        `https://bible-api.com/${encodeURIComponent(ref)}?translation=kjv`
+        "https://bible-api.com/" + encodeURIComponent(ref) + "?translation=kjv"
     );
 
     const data = await res.json();
 
-    verseText.value = data.text || "Not found";
+    document.getElementById("verseText").value =
+        data.text || "Verse not found";
 };
 
 window.saveVerse = async function() {
 
     await addDoc(collection(db,"dailyVerses"), {
-        date: verseDate.value,
-        reference: verseRef.value,
-        verse: verseText.value
+        date: document.getElementById("verseDate").value,
+        reference: document.getElementById("verseRef").value,
+        verse: document.getElementById("verseText").value
     });
 
     loadVerses();
@@ -281,16 +282,17 @@ window.saveVerse = async function() {
 
 async function loadVerses() {
     const snap = await getDocs(collection(db,"dailyVerses"));
-    verseList.innerHTML = "";
+    const container = document.getElementById("verseList");
+    container.innerHTML = "";
 
     snap.forEach(d => {
         const v = d.data();
 
-        verseList.innerHTML += `
+        container.innerHTML += `
         <div class="card">
-            <b>${v.date}</b><br>
-            ${v.reference}<br>
-            <small>${v.verse.slice(0,120)}...</small><br>
+            <b>${v.date || ""}</b><br>
+            ${v.reference || ""}<br>
+            <small>${(v.verse || "").slice(0,120)}...</small><br>
             <button onclick="deleteVerse('${d.id}')">Delete</button>
         </div>`;
     });
@@ -305,8 +307,8 @@ window.deleteVerse = async function(id) {
 window.saveTeamMember = async function() {
 
     await addDoc(collection(db,"teamMembers"), {
-        name: memberName.value,
-        bio: memberBio.value
+        name: document.getElementById("memberName").value,
+        bio: document.getElementById("memberBio").value
     });
 
     loadTeam();
@@ -314,15 +316,16 @@ window.saveTeamMember = async function() {
 
 async function loadTeam() {
     const snap = await getDocs(collection(db,"teamMembers"));
-    teamMembers.innerHTML = "";
+    const container = document.getElementById("teamMembers");
+    container.innerHTML = "";
 
     snap.forEach(d => {
         const t = d.data();
 
-        teamMembers.innerHTML += `
+        container.innerHTML += `
         <div class="card">
-            <b>${t.name}</b><br>
-            ${t.bio}
+            <b>${t.name || ""}</b><br>
+            ${t.bio || ""}
         </div>`;
     });
 }

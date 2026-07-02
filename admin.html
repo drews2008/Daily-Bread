@@ -63,7 +63,7 @@
                 <input type="file" id="fileUpload">
             </div>
             <div class="form-group">
-                <label>Publish Date</label>
+                <label>Publish Date (leave blank to publish immediately)</label>
                 <input id="publishDate" type="datetime-local">
             </div>
             <div class="form-group">
@@ -175,15 +175,18 @@
                     }
                 }
 
-                const post = {
-                    title: document.getElementById("title").value,
-                    day: document.getElementById("day").value,
-                    scripture: document.getElementById("scripture").value,
-                    preview: document.getElementById("preview").value,
-                    content: document.getElementById("content").value,
-                    image: imageUrl || "",
-                    publishDate: document.getElementById("publishDate").value
-                };
+              const publishDateValue = document.getElementById("publishDate").value;
+
+const post = {
+    title: document.getElementById("title").value,
+    day: document.getElementById("day").value,
+    scripture: document.getElementById("scripture").value,
+    preview: document.getElementById("preview").value,
+    content: document.getElementById("content").value,
+    image: imageUrl || "",
+    // If publishDate is blank, it saves as empty string (Publish Immediately)
+    publishDate: publishDateValue || "" 
+};
 
                 if (editId) {
                     await updateDoc(doc(db, "posts", editId), post);

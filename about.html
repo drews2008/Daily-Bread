@@ -44,6 +44,39 @@ header {
     background: #333;
 }
 
+/* Statements Styling */
+.statements-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.statement-card {
+    background: #f5e6cc;
+    padding: 25px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-top: 5px solid #8b4513;
+}
+
+.statement-card h3 {
+    color: black;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.4em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.statement-card p {
+    color: #333;
+    line-height: 1.6;
+    margin: 0;
+    font-size: 1.05em;
+}
+
 .team-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -107,7 +140,7 @@ h2 {
 }
 
 @media (max-width: 768px) {
-    .team-container {
+    .team-container, .statements-container {
         grid-template-columns: 1fr;
     }
     
@@ -138,10 +171,24 @@ h2 {
     <p>Meet the team behind Daily Bread Ministries dedicated to sharing God's Word daily</p>
 </div>
 
+<div class="statements-container">
+    <div class="statement-card">
+        <h3>Our Purpose</h3>
+        <p>To glorify God by making His truth accessible and practical for everyday living, ensuring every believer has the spiritual nourishment they need.</p>
+    </div>
+    <div class="statement-card">
+        <h3>Our Mission</h3>
+        <p>To provide daily, biblically-sound devotionals that inspire, encourage, and challenge believers to deepen their walk with Jesus Christ.</p>
+    </div>
+    <div class="statement-card">
+        <h3>Our Vision</h3>
+        <p>To see a global community of believers firmly rooted in Scripture, walking in faith, and transforming their families and communities for Christ.</p>
+    </div>
+</div>
+
 <h2>Our Team</h2>
 <div class="team-container" id="teamContainer">
-    <!-- Team members will load here -->
-</div>
+    </div>
 
 </div>
 

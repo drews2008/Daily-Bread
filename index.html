@@ -19,56 +19,52 @@ header {
     height:auto;
     margin-bottom:10px;
 }
-.section { max-width:900px; margin:auto; padding:20px; }
+
+.section {
+    max-width:900px;
+    margin:auto;
+    padding:20px;
+}
 
 .nav-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    margin-bottom:20px;
+    flex-wrap:wrap;
 }
 
 .nav-buttons button {
-    background: black;
-    color: #f5e6cc;
-    padding: 10px 20px;
-    border: none;
-    cursor: pointer;
-    border-radius: 4px;
-    font-size: 1em;
+    background:black;
+    color:#f5e6cc;
+    padding:10px 20px;
+    border:none;
+    cursor:pointer;
+    border-radius:4px;
 }
 
 .nav-buttons button:hover {
-    background: #333;
+    background:#333;
 }
 
 .verse-of-day {
-    background: linear-gradient(135deg, #8b4513 0%, #a0522d 100%);
-    color: #f5e6cc;
-    padding: 30px;
-    border-radius: 8px;
-    margin-bottom: 30px;
-    text-align: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-}
-
-.verse-of-day h2 {
-    margin: 0 0 15px 0;
-    font-size: 1.5em;
-    letter-spacing: 1px;
+    background:linear-gradient(135deg,#8b4513,#a0522d);
+    color:#f5e6cc;
+    padding:30px;
+    border-radius:8px;
+    margin-bottom:30px;
+    text-align:center;
 }
 
 .verse-text {
-    font-size: 1.3em;
-    font-style: italic;
-    line-height: 1.6;
-    margin-bottom: 15px;
+    font-size:1.3em;
+    font-style:italic;
+    margin-bottom:10px;
 }
 
 .verse-reference {
-    font-size: 1.1em;
-    opacity: 0.9;
+    font-size:1.1em;
+    opacity:0.9;
 }
 
 .card {
@@ -92,14 +88,8 @@ button {
     cursor:pointer;
 }
 
-@media (max-width: 768px) {
-    .verse-of-day {
-        padding: 20px;
-    }
-    
-    .verse-text {
-        font-size: 1.1em;
-    }
+@media (max-width:768px) {
+    .verse-text { font-size:1.1em; }
 }
 </style>
 </head>
@@ -113,11 +103,13 @@ button {
 </header>
 
 <div class="section">
+
 <div class="nav-buttons">
     <button onclick="window.location.href='calendar.html'">See all devotionals</button>
     <button onclick="window.location.href='about.html'">About</button>
 </div>
 
+<!-- VERSE OF THE DAY -->
 <div class="verse-of-day">
     <h2>Verse of the Day</h2>
     <div class="verse-text" id="verseText">Loading...</div>
@@ -126,124 +118,127 @@ button {
 
 <h2>Latest Devotionals</h2>
 <div id="posts"></div>
+
 </div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {
+    getFirestore,
+    collection,
+    getDocs,
+    query,
+    where
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA3g--TT89iLyEQ5lvwI7mBcIygrls7iCQ",
   authDomain: "daily-bread-973e9.firebaseapp.com",
-  projectId: "daily-bread-973e9",
-  storageBucket: "daily-bread-973e9.firebasestorage.app",
-  messagingSenderId: "277061281496",
-  appId: "1:277061281496:web:1a72a48469e863e5dcd9ad"
+  projectId: "daily-bread-973e9"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+/* ===================== VERSE OF THE DAY (FIXED) ===================== */
 async function loadVerseOfDay() {
-try {
-const snapshot = await getDocs(collection(db, "posts"));
-const now = new Date();
 
-let posts = [];
+    try {
+        const snap = await getDocs(collection(db, "dailyVerses"));
 
-snapshot.forEach(doc => {
-const p = doc.data();
-if (!p.publishDate || new Date(p.publishDate) <= now) {
-posts.push({ ...p, id: doc.id });
-}
-});
+        const today = new Date().toISOString().split("T")[0];
 
-if (posts.length === 0) {
-document.getElementById("verseText").textContent = "No verse available today.";
-return;
-}
+        let verseToday = null;
 
-// Get verse of the day based on today's date using a simpler method
-const startOfYear = new Date(now.getFullYear(), 0, 0);
-const diff = now - startOfYear;
-const oneDay = 1000 * 60 * 60 * 24;
-const dayOfYear = Math.floor(diff / oneDay);
-const verseIndex = dayOfYear % posts.length;
-const verseOfDay = posts[verseIndex];
+        snap.forEach(doc => {
+            const v = doc.data();
 
-console.log("Posts available:", posts.length);
-console.log("Day of year:", dayOfYear);
-console.log("Verse index:", verseIndex);
-console.log("Selected verse:", verseOfDay);
+            if (v.date === today) {
+                verseToday = v;
+            }
+        });
 
-document.getElementById("verseText").textContent = `"${verseOfDay.scripture}"`;
-document.getElementById("verseReference").textContent = verseOfDay.title;
-} catch (error) {
-console.error("Error loading verse of the day:", error);
-document.getElementById("verseText").textContent = "Error loading verse.";
-}
+        if (!verseToday) {
+            document.getElementById("verseText").textContent =
+                "No verse scheduled for today.";
+            document.getElementById("verseReference").textContent = "";
+            return;
+        }
+
+        document.getElementById("verseText").textContent =
+            `"${verseToday.verse}"`;
+
+        document.getElementById("verseReference").textContent =
+            verseToday.reference;
+
+    } catch (err) {
+        console.error(err);
+        document.getElementById("verseText").textContent =
+            "Error loading verse.";
+    }
 }
 
+/* ===================== DEVOTIONALS ===================== */
 async function loadPosts() {
-const container = document.getElementById("posts");
-container.innerHTML = "";
 
-const snapshot = await getDocs(collection(db, "posts"));
-const now = new Date();
+    const container = document.getElementById("posts");
+    container.innerHTML = "";
 
-let posts = [];
+    const snap = await getDocs(collection(db, "posts"));
+    const now = new Date();
 
-snapshot.forEach(doc => {
-const p = doc.data();
-if (!p.publishDate || new Date(p.publishDate) <= now) {
-posts.push({ ...p, id: doc.id });
-}
-});
+    let posts = [];
 
-posts.sort((a,b)=> new Date(b.publishDate || 0) - new Date(a.publishDate || 0));
+    snap.forEach(doc => {
+        const p = doc.data();
+        if (!p.publishDate || new Date(p.publishDate) <= now) {
+            posts.push({ ...p, id: doc.id });
+        }
+    });
 
-// Only show the last 3 devotionals
-const recentPosts = posts.slice(0, 3);
+    posts.sort((a,b)=>
+        new Date(b.publishDate || 0) - new Date(a.publishDate || 0)
+    );
 
-recentPosts.forEach(post => {
+    const recent = posts.slice(0,3);
 
-const img = post.image && post.image.trim() !== "" 
-? post.image 
-: "";
+    recent.forEach(post => {
 
-container.innerHTML += `
-<div class="card">
-${img ? `<img src="${img}">` : ""}
-<h3>${post.day} – ${post.title}</h3>
-<p><strong>${post.scripture}</strong></p>
-<p>${post.preview}</p>
-<button onclick="showFull('${post.id}')">Read Full</button>
-</div>
-`;
-});
+        container.innerHTML += `
+        <div class="card">
+            ${post.image ? `<img src="${post.image}">` : ""}
+            <h3>${post.day} – ${post.title}</h3>
+            <p><strong>${post.scripture}</strong></p>
+            <p>${post.preview}</p>
+            <button onclick="showFull('${post.id}')">Read Full</button>
+        </div>`;
+    });
 }
 
+/* ===================== FULL VIEW ===================== */
 window.showFull = async function(id) {
 
-const snapshot = await getDocs(collection(db, "posts"));
-let post;
+    const snap = await getDocs(collection(db, "posts"));
 
-snapshot.forEach(doc => {
-if (doc.id === id) post = doc.data();
-});
+    let post = null;
 
-document.getElementById("posts").innerHTML = `
-<div class="card">
-<h2>${post.day} – ${post.title}</h2>
-<p><strong>${post.scripture}</strong></p>
-<p>${post.content}</p>
-<button onclick="location.reload()">← Back</button>
-</div>
-`;
-}
+    snap.forEach(doc => {
+        if (doc.id === id) post = doc.data();
+    });
 
-// Load verse of the day and posts on page load
+    if (!post) return;
+
+    document.getElementById("posts").innerHTML = `
+    <div class="card">
+        <h2>${post.day} – ${post.title}</h2>
+        <p><strong>${post.scripture}</strong></p>
+        <p>${post.content}</p>
+        <button onclick="location.reload()">← Back</button>
+    </div>`;
+};
+
+/* ===================== INIT ===================== */
 loadVerseOfDay();
 loadPosts();
 

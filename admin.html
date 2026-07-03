@@ -87,14 +87,12 @@ label {
 
 <div class="container">
 
-    <!-- TABS -->
     <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('devotionals', this)">Devotionals</button>
         <button class="tab-btn" onclick="switchTab('verses', this)">Verses</button>
         <button class="tab-btn" onclick="switchTab('team', this)">Team</button>
     </div>
 
-    <!-- ================= DEVOTIONALS ================= -->
     <div id="devotionals" class="tab-content active">
         <h2>Devotionals</h2>
 
@@ -131,7 +129,6 @@ label {
         <div id="posts"></div>
     </div>
 
-    <!-- ================= VERSES ================= -->
     <div id="verses" class="tab-content">
         <h2>Verse Scheduler (KJV)</h2>
 
@@ -153,7 +150,6 @@ label {
         <div id="verseList"></div>
     </div>
 
-    <!-- ================= TEAM ================= -->
     <div id="team" class="tab-content">
         <h2>Team Members</h2>
 
@@ -179,7 +175,8 @@ import {
     getDocs,
     deleteDoc,
     doc,
-    updateDoc
+    updateDoc,
+    getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -191,26 +188,22 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let editId = null;
+// Tracking IDs for editing
+let editPostId = null;
+let editTeamId = null;
 
 /* ================= SAFE TAB SWITCH ================= */
 window.switchTab = function(tab, btn) {
-
-    document.querySelectorAll('.tab-content')
-        .forEach(t => t.classList.remove('active'));
-
-    document.querySelectorAll('.tab-btn')
-        .forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
 
     const target = document.getElementById(tab);
     if (target) target.classList.add('active');
-
     if (btn) btn.classList.add('active');
 };
 
 /* ================= DEVOTIONALS ================= */
 window.savePost = async function() {
-
     const post = {
         title: document.getElementById("title").value,
         day: document.getElementById("day").value,
@@ -220,112 +213,156 @@ window.savePost = async function() {
         publishDate: document.getElementById("publishDate").value || ""
     };
 
-    if (editId) {
-        await updateDoc(doc(db,"posts",editId), post);
-        editId = null;
+    if (editPostId) {
+        await updateDoc(doc(db, "posts", editPostId), post);
+        editPostId = null;
     } else {
-        await addDoc(collection(db,"posts"), post);
+        await addDoc(collection(db, "posts"), post);
     }
+
+    // Reset fields
+    document.getElementById("title").value = "";
+    document.getElementById("scripture").value = "";
+    document.getElementById("preview").value = "";
+    document.getElementById("content").value = "";
+    document.getElementById("publishDate").value = "";
 
     loadPosts();
 };
 
+window.editPost = async function(id) {
+    const docRef = doc(db, "posts", id);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+        const p = docSnap.data();
+        document.getElementById("title").value = p.title || "";
+        document.getElementById("day").value = p.day || "Sunday";
+        document.getElementById("scripture").value = p.scripture || "";
+        document.getElementById("preview").value = p.preview || "";
+        document.getElementById("content").value = p.content || "";
+        document.getElementById("publishDate").value = p.publishDate || "";
+        editPostId = id;
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+};
+
 async function loadPosts() {
-    const snap = await getDocs(collection(db,"posts"));
+    const snap = await getDocs(collection(db, "posts"));
     const container = document.getElementById("posts");
     container.innerHTML = "";
 
     snap.forEach(d => {
         const p = d.data();
-
         container.innerHTML += `
         <div class="card">
             <b>${p.title || ""}</b><br>
             ${p.scripture || ""}<br>
+            <button onclick="editPost('${d.id}')">Edit</button>
             <button onclick="deletePost('${d.id}')">Delete</button>
         </div>`;
     });
 }
 
 window.deletePost = async function(id) {
-    await deleteDoc(doc(db,"posts",id));
+    await deleteDoc(doc(db, "posts", id));
     loadPosts();
 };
 
 /* ================= VERSES (KJV SAFE) ================= */
 window.fetchVerse = async function() {
-
     const ref = document.getElementById("verseRef").value;
-
     if (!ref) return alert("Enter a reference");
 
-    const res = await fetch(
-        "https://bible-api.com/" + encodeURIComponent(ref) + "?translation=kjv"
-    );
-
+    const res = await fetch("https://bible-api.com/" + encodeURIComponent(ref) + "?translation=kjv");
     const data = await res.json();
-
-    document.getElementById("verseText").value =
-        data.text || "Verse not found";
+    document.getElementById("verseText").value = data.text || "Verse not found";
 };
 
 window.saveVerse = async function() {
-
-    await addDoc(collection(db,"dailyVerses"), {
+    await addDoc(collection(db, "dailyVerses"), {
         date: document.getElementById("verseDate").value,
         reference: document.getElementById("verseRef").value,
         verse: document.getElementById("verseText").value
     });
 
+    document.getElementById("verseDate").value = "";
+    document.getElementById("verseRef").value = "";
+    document.getElementById("verseText").value = "";
+
     loadVerses();
 };
 
 async function loadVerses() {
-    const snap = await getDocs(collection(db,"dailyVerses"));
+    const snap = await getDocs(collection(db, "dailyVerses"));
     const container = document.getElementById("verseList");
     container.innerHTML = "";
 
     snap.forEach(d => {
         const v = d.data();
-
         container.innerHTML += `
         <div class="card">
             <b>${v.date || ""}</b><br>
             ${v.reference || ""}<br>
-            <small>${(v.verse || "").slice(0,120)}...</small><br>
+            <small>${(v.verse || "").slice(0, 120)}...</small><br>
             <button onclick="deleteVerse('${d.id}')">Delete</button>
         </div>`;
     });
 }
 
 window.deleteVerse = async function(id) {
-    await deleteDoc(doc(db,"dailyVerses",id));
+    await deleteDoc(doc(db, "dailyVerses", id));
     loadVerses();
 };
 
 /* ================= TEAM ================= */
 window.saveTeamMember = async function() {
-
-    await addDoc(collection(db,"teamMembers"), {
+    const memberData = {
         name: document.getElementById("memberName").value,
         bio: document.getElementById("memberBio").value
-    });
+    };
+
+    if (editTeamId) {
+        await updateDoc(doc(db, "teamMembers", editTeamId), memberData);
+        editTeamId = null;
+    } else {
+        await addDoc(collection(db, "teamMembers"), memberData);
+    }
+
+    document.getElementById("memberName").value = "";
+    document.getElementById("memberBio").value = "";
 
     loadTeam();
 };
 
+window.editTeamMember = async function(id) {
+    const docRef = doc(db, "teamMembers", id);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+        const t = docSnap.data();
+        document.getElementById("memberName").value = t.name || "";
+        document.getElementById("memberBio").value = t.bio || "";
+        editTeamId = id;
+    }
+};
+
+window.deleteTeamMember = async function(id) {
+    await deleteDoc(doc(db, "teamMembers", id));
+    loadTeam();
+};
+
 async function loadTeam() {
-    const snap = await getDocs(collection(db,"teamMembers"));
+    const snap = await getDocs(collection(db, "teamMembers"));
     const container = document.getElementById("teamMembers");
     container.innerHTML = "";
 
     snap.forEach(d => {
         const t = d.data();
-
         container.innerHTML += `
         <div class="card">
             <b>${t.name || ""}</b><br>
-            ${t.bio || ""}
+            <p>${t.bio || ""}</p>
+            <button onclick="editTeamMember('${d.id}')">Edit</button>
+            <button onclick="deleteTeamMember('${d.id}')">Delete</button>
         </div>`;
     });
 }

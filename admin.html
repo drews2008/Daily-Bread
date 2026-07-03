@@ -69,6 +69,31 @@ button:hover { background:#333; }
     border-radius:4px;
 }
 
+.team-card {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.profile-img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #ccc;
+    border: 2px solid #8b4513;
+}
+
+.profile-preview {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: none;
+    margin-bottom: 10px;
+    border: 2px solid black;
+}
+
 hr { margin:20px 0; border:1px solid #8b4513; }
 
 label {
@@ -153,10 +178,17 @@ label {
     <div id="team" class="tab-content">
         <h2>Team Members</h2>
 
+        <label>Name</label>
         <input id="memberName" placeholder="Name">
+        
+        <label>Bio</label>
         <textarea id="memberBio" placeholder="Bio"></textarea>
 
-        <button onclick="saveTeamMember()">Save</button>
+        <label>Profile Picture</label>
+        <input type="file" id="memberPhoto" accept="image/*" onchange="previewImage(event)">
+        <img id="photoPreview" class="profile-preview" src="" alt="Preview">
+
+        <button onclick="saveTeamMember()">Save Member</button>
 
         <hr>
         <h3>Team List</h3>
@@ -188,9 +220,24 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Tracking IDs for editing
 let editPostId = null;
 let editTeamId = null;
+let base64ImageString = ""; 
+
+/* ================= IMAGE PREVIEW UTILITY ================= */
+window.previewImage = function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            base64ImageString = e.target.result;
+            const previewImg = document.getElementById("photoPreview");
+            previewImg.src = base64ImageString;
+            previewImg.style.display = "block";
+        }
+        reader.readAsDataURL(file);
+    }
+};
 
 /* ================= SAFE TAB SWITCH ================= */
 window.switchTab = function(tab, btn) {
@@ -220,7 +267,6 @@ window.savePost = async function() {
         await addDoc(collection(db, "posts"), post);
     }
 
-    // Reset fields
     document.getElementById("title").value = "";
     document.getElementById("scripture").value = "";
     document.getElementById("preview").value = "";
@@ -318,7 +364,8 @@ window.deleteVerse = async function(id) {
 window.saveTeamMember = async function() {
     const memberData = {
         name: document.getElementById("memberName").value,
-        bio: document.getElementById("memberBio").value
+        bio: document.getElementById("memberBio").value,
+        photo: base64ImageString 
     };
 
     if (editTeamId) {
@@ -330,6 +377,9 @@ window.saveTeamMember = async function() {
 
     document.getElementById("memberName").value = "";
     document.getElementById("memberBio").value = "";
+    document.getElementById("memberPhoto").value = "";
+    document.getElementById("photoPreview").style.display = "none";
+    base64ImageString = ""; 
 
     loadTeam();
 };
@@ -341,6 +391,17 @@ window.editTeamMember = async function(id) {
         const t = docSnap.data();
         document.getElementById("memberName").value = t.name || "";
         document.getElementById("memberBio").value = t.bio || "";
+        
+        if(t.photo) {
+            base64ImageString = t.photo;
+            const previewImg = document.getElementById("photoPreview");
+            previewImg.src = t.photo;
+            previewImg.style.display = "block";
+        } else {
+            document.getElementById("photoPreview").style.display = "none";
+            base64ImageString = "";
+        }
+        
         editTeamId = id;
     }
 };
@@ -357,12 +418,17 @@ async function loadTeam() {
 
     snap.forEach(d => {
         const t = d.data();
+        const imageSrc = t.photo || "https://via.placeholder.com/80"; 
+        
         container.innerHTML += `
-        <div class="card">
-            <b>${t.name || ""}</b><br>
-            <p>${t.bio || ""}</p>
-            <button onclick="editTeamMember('${d.id}')">Edit</button>
-            <button onclick="deleteTeamMember('${d.id}')">Delete</button>
+        <div class="card team-card">
+            <img class="profile-img" src="${imageSrc}" alt="Profile">
+            <div>
+                <b>${t.name || ""}</b><br>
+                <p style="margin:5px 0;">${t.bio || ""}</p>
+                <button onclick="editTeamMember('${d.id}')">Edit</button>
+                <button onclick="deleteTeamMember('${d.id}')">Delete</button>
+            </div>
         </div>`;
     });
 }

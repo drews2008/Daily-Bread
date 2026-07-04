@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>About Us - Daily Bread Ministries</title>
 
 <style>
@@ -139,15 +140,51 @@ h2 {
     line-height: 1.6;
 }
 
+/* ===================== RESPONSIVE / MOBILE STYLES ===================== */
+
 @media (max-width: 768px) {
+    header { padding:18px 15px; }
+    .logo { width:130px; }
+    header h1 { font-size:1.5em; margin:8px 0; }
+    header p { font-size:0.9em; margin:0; }
+
+    .section { padding:15px; }
+
+    .nav-buttons { flex-direction:column; align-items:stretch; }
+    .nav-buttons button { width:100%; }
+
+    .about-intro { padding:20px; }
+    .about-intro h1 { font-size:1.5em; }
+    .about-intro p { font-size:1em; }
+
+    .statement-card { padding:18px; }
+    .statement-card h3 { font-size:1.2em; }
+    .statement-card p { font-size:1em; }
+
     .team-container, .statements-container {
         grid-template-columns: 1fr;
     }
-    
+
+    .team-member { padding:20px; }
     .team-member img {
         width:150px;
         height:150px;
     }
+}
+
+@media (max-width: 480px) {
+    header h1 { font-size:1.25em; }
+    .logo { width:100px; }
+    .section { padding:10px; }
+    .about-intro h1 { font-size:1.3em; }
+    .team-member img { width:120px; height:120px; }
+}
+
+/* Set by JS once a touch/mobile device is detected. Catches cases a
+   width-only media query misses, e.g. a tablet held in landscape. */
+body.is-mobile button {
+    min-height:44px;
+    font-size:1em;
 }
 </style>
 </head>
@@ -168,7 +205,7 @@ h2 {
 
 <div class="about-intro">
     <h1>About Us</h1>
-    </div>
+</div>
 
 <div class="statements-container">
     <div class="statement-card">
@@ -187,7 +224,7 @@ h2 {
 
 <h2>Meet Our Team</h2>
 <div class="team-container" id="teamContainer">
-    </div>
+</div>
 
 </div>
 
@@ -196,6 +233,33 @@ h2 {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+/* ===================== MOBILE UI DETECTION ===================== */
+/* Feature-detection, not user-agent sniffing: a device is treated as
+   "mobile" if the viewport is narrow OR the primary input is a
+   touch-style pointer with no hover support (phones/tablets). Using
+   matchMedia's own change events means this updates live on resize,
+   rotation, or even plugging in a mouse -- no resize polling needed. */
+function applyMobileClass(mobile) {
+    document.body.classList.toggle("is-mobile", mobile);
+    document.body.classList.toggle("is-desktop", !mobile);
+    window.isMobileDevice = mobile;
+}
+
+function detectMobileUI() {
+    const narrowQuery = window.matchMedia("(max-width:768px)");
+    const touchPrimaryQuery = window.matchMedia("(pointer:coarse) and (hover:none)");
+
+    const evaluate = () =>
+        applyMobileClass(narrowQuery.matches || touchPrimaryQuery.matches);
+
+    evaluate();
+    narrowQuery.addEventListener("change", evaluate);
+    touchPrimaryQuery.addEventListener("change", evaluate);
+}
+
+detectMobileUI();
+
+/* ===================== FIREBASE ===================== */
 const firebaseConfig = {
   apiKey: "AIzaSyA3g--TT89iLyEQ5lvwI7mBcIygrls7iCQ",
   authDomain: "daily-bread-973e9.firebaseapp.com",
@@ -229,7 +293,7 @@ const profileImage = member.image || "https://via.placeholder.com/200?text=No+Im
 
 container.innerHTML += `
 <div class="team-member">
-    <img src="${profileImage}" alt="${member.name}">
+    <img src="${profileImage}" alt="${member.name}" loading="lazy">
     <h3>${member.name}</h3>
     <p>${member.bio || "No bio available"}</p>
 </div>

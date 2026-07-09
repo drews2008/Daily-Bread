@@ -278,6 +278,13 @@ const db = getFirestore(app);
 let allPosts = [];
 let archiveMode = true;
 
+// True only when a post HAS a publishDate and that date is still ahead of now.
+// Posts with no publishDate at all (drafts) are untouched, so they keep
+// showing under "Unpublished" like before.
+function isFutureScheduled(post) {
+    return !!post.publishDate && new Date(post.publishDate) > new Date();
+}
+
 async function loadPosts() {
     const snap = await getDocs(collection(db, "posts"));
     allPosts = [];
@@ -289,7 +296,7 @@ async function loadPosts() {
     allPosts.sort((a,b) => new Date(b.publishDate||0) - new Date(a.publishDate||0));
 
     updateStats();
-    render(allPosts);
+    render(getFiltered());
 }
 
 /* =========================
@@ -300,6 +307,8 @@ function getFiltered() {
     const day = document.getElementById("dayFilter").value;
 
     return allPosts.filter(p => {
+
+        if (isFutureScheduled(p)) return false;
 
         const textMatch =
             (p.title || "").toLowerCase().includes(search) ||
@@ -387,12 +396,13 @@ document.getElementById("dayFilter").addEventListener("change", () => {
 window.resetView = function() {
     document.getElementById("searchInput").value = "";
     document.getElementById("dayFilter").value = "";
-    render(allPosts);
+    render(getFiltered());
 };
 
 window.toggleArchive = function() {
     archiveMode = !archiveMode;
-    render(archiveMode ? allPosts : allPosts.slice(0,10));
+    const visible = allPosts.filter(p => !isFutureScheduled(p));
+    render(archiveMode ? visible : visible.slice(0,10));
 };
 
 window.goHome = function() {
@@ -403,7 +413,7 @@ window.goHome = function() {
    STATS
 ========================= */
 function updateStats() {
-    const published = allPosts.filter(p => p.publishDate).length;
+    const published = allPosts.filter(p => p.publishDate && !isFutureScheduled(p)).length;
 
     document.getElementById("totalCount").textContent = allPosts.length;
     document.getElementById("publishedCount").textContent = published;

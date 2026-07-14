@@ -137,7 +137,11 @@ label {
 
         <label>Scripture</label>
         <input id="scripture">
+        <label>Month Theme</label>
+        <input id="monthTheme" placeholder="October - Spirits">
 
+        <label>Week Theme</label>
+        <input id="weekTheme" placeholder="Week 2 - Dependence on God">
         <label>Publish Date</label>
         <input id="publishDate" type="datetime-local">
 
@@ -252,16 +256,21 @@ window.switchTab = function(tab, btn) {
 /* ================= DEVOTIONALS ================= */
 window.savePost = async function() {
     const post = {
-        title: document.getElementById("title").value,
-        day: document.getElementById("day").value,
-        scripture: document.getElementById("scripture").value,
-        preview: document.getElementById("preview").value,
-        content: document.getElementById("content").value,
-        publishDate: document.getElementById("publishDate").value || ""
-    };
-
+    title: document.getElementById("title").value,
+    day: document.getElementById("day").value,
+    monthTheme: document.getElementById("monthTheme").value,
+    weekTheme: document.getElementById("weekTheme").value,
+    scripture: document.getElementById("scripture").value,
+    preview: document.getElementById("preview").value,
+    content: document.getElementById("content").value,
+    publishDate: document.getElementById("publishDate").value || ""
+};
     if (editPostId) {
         await updateDoc(doc(db, "posts", editPostId), post);
+        document.getElementById("monthTheme").value = p.monthTheme || "";
+document.getElementById("weekTheme").value = p.weekTheme || "";
+        document.getElementById("monthTheme").value = "";
+document.getElementById("weekTheme").value = "";
         editPostId = null;
     } else {
         await addDoc(collection(db, "posts"), post);
@@ -301,8 +310,10 @@ async function loadPosts() {
         const p = d.data();
         container.innerHTML += `
         <div class="card">
-            <b>${p.title || ""}</b><br>
-            ${p.scripture || ""}<br>
+            <b>${p.title}</b><br>
+<small><b>${p.monthTheme || ""}</b></small><br>
+<small>${p.weekTheme || ""}</small><br>
+${p.scripture}<br>
             <button onclick="editPost('${d.id}')">Edit</button>
             <button onclick="deletePost('${d.id}')">Delete</button>
         </div>`;

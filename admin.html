@@ -140,8 +140,8 @@ label {
         <label>Month Theme</label>
         <input id="monthTheme" placeholder="October - Spirits">
 
-        <label>Week Theme</label>
-        <input id="weekTheme" placeholder="Week 2 - Dependence on God">
+        <label>daily theme</label>
+        <input id="dailyTheme" placeholder="Month 2 - Dependence on God">
         <label>Publish Date</label>
         <input id="publishDate" type="datetime-local">
 
@@ -259,7 +259,7 @@ window.savePost = async function() {
     title: document.getElementById("title").value,
     day: document.getElementById("day").value,
     monthTheme: document.getElementById("monthTheme").value,
-    weekTheme: document.getElementById("weekTheme").value,
+    dailyTheme: document.getElementById("dailyTheme").value,
     scripture: document.getElementById("scripture").value,
     preview: document.getElementById("preview").value,
     content: document.getElementById("content").value,
@@ -268,9 +268,9 @@ window.savePost = async function() {
     if (editPostId) {
         await updateDoc(doc(db, "posts", editPostId), post);
         document.getElementById("monthTheme").value = p.monthTheme || "";
-document.getElementById("weekTheme").value = p.weekTheme || "";
+document.getElementById("dailyTheme").value = p.dailyTheme || "";
         document.getElementById("monthTheme").value = "";
-document.getElementById("weekTheme").value = "";
+document.getElementById("dailyTheme").value = "";
         editPostId = null;
     } else {
         await addDoc(collection(db, "posts"), post);
@@ -312,7 +312,7 @@ async function loadPosts() {
         <div class="card">
             <b>${p.title}</b><br>
 <small><b>${p.monthTheme || ""}</b></small><br>
-<small>${p.weekTheme || ""}</small><br>
+<small>${p.dailyTheme || ""}</small><br>
 ${p.scripture}<br>
             <button onclick="editPost('${d.id}')">Edit</button>
             <button onclick="deletePost('${d.id}')">Delete</button>

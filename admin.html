@@ -267,16 +267,15 @@ window.savePost = async function() {
 };
     if (editPostId) {
         await updateDoc(doc(db, "posts", editPostId), post);
-        document.getElementById("monthTheme").value = p.monthTheme || "";
-document.getElementById("dailyTheme").value = p.dailyTheme || "";
-        document.getElementById("monthTheme").value = "";
-document.getElementById("dailyTheme").value = "";
         editPostId = null;
     } else {
         await addDoc(collection(db, "posts"), post);
     }
 
     document.getElementById("title").value = "";
+    document.getElementById("day").value = "Sunday";
+    document.getElementById("monthTheme").value = "";
+    document.getElementById("dailyTheme").value = "";
     document.getElementById("scripture").value = "";
     document.getElementById("preview").value = "";
     document.getElementById("content").value = "";
@@ -293,6 +292,8 @@ window.editPost = async function(id) {
         document.getElementById("title").value = p.title || "";
         document.getElementById("day").value = p.day || "Sunday";
         document.getElementById("scripture").value = p.scripture || "";
+        document.getElementById("monthTheme").value = p.monthTheme || "";
+        document.getElementById("dailyTheme").value = p.dailyTheme || "";
         document.getElementById("preview").value = p.preview || "";
         document.getElementById("content").value = p.content || "";
         document.getElementById("publishDate").value = p.publishDate || "";

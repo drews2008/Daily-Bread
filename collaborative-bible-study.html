@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Collaborative Bible Study — Demo</title>
+<style>
+:root{
+  --bg:#f3e8df; --panel:#fff6ea; --accent:#8b4513; --muted:#7a4a1f; --card:#f5e6cc;
+}
+*{box-sizing:border-box}
+body{font-family:Georgia,serif;margin:0;background:linear-gradient(180deg,var(--bg),#e3caa6);color:#222}
+.header{background:#000;color:var(--card);padding:20px;text-align:center}
+.container{max-width:1100px;margin:20px auto;padding:18px}
+.row{display:flex;gap:18px}
+.col{flex:1}
+.panel{background:var(--panel);padding:14px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.08)}
+.h1{font-size:1.25rem;margin:0}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+button{background:#000;color:var(--card);border:none;padding:8px 12px;border-radius:6px;cursor:pointer}
+button.ghost{background:transparent;color:#222;border:1px solid rgba(0,0,0,0.06)}
+.reading-card{margin-bottom:12px}
+.reader{padding:12px;max-height:60vh;overflow:auto;border-radius:8px;background:#fff}
+.verse{padding:8px 6px;border-bottom:1px solid #eee;display:flex;gap:12px;align-items:flex-start}
+.verse-num{width:40px;color:var(--muted);font-weight:bold}
+.verse-text{flex:1}
+.verse-actions{display:flex;gap:6px}
+.small{font-size:0.9rem;color:#444}
+.note-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.4)}
+.modal-card{background:var(--panel);padding:16px;border-radius:8px;width:90%;max-width:720px}
+.form-row{margin-bottom:8px}
+.input,textarea,select{width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;font-family:inherit}
+.note-list{max-height:40vh;overflow:auto}
+.note-card{background:#fff;padding:10px;border-radius:6px;margin-bottom:8px;border-left:4px solid var(--accent)}
+.note-meta{font-size:0.85rem;color:var(--muted);margin-bottom:6px}
+.badge{display:inline-block;background:var(--accent);color:var(--card);padding:2px 8px;border-radius:12px;font-size:0.75rem}
+.summary{background:#fff;padding:12px;border-radius:8px}
+.footer{margin-top:12px;font-size:0.9rem;color:#333}
+@media(max-width:900px){.row{flex-direction:column}}
+</style>
+</head>
+<body>
+<header class="header">
+  <img src="DailyBreadLogo.png" alt="Daily Bread" style="height:56px;display:block;margin:0 auto 8px">
+  <div class="h1">Collaborative Bible Study — Demo</div>
+  <div class="small">Prototype: KJV reader, verse notes, group sharing, AI summary (simulated)</div>
+</header>
+<div class="container">
+  <div class="panel reading-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+      <div>
+        <div style="font-weight:700">Today's Reading</div>
+        <div id="todayLabel" class="small">Day 1 • Genesis 1–3</div>
+      </div>
+      <div class="controls">
+        <button id="openReaderBtn">Read Today's Passage</button>
+        <button id="markCompleteBtn" class="ghost">Mark Reading Complete</button>
+        <button id="myNotesBtn" class="ghost">My Notes</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col panel">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-weight:700">Bible Reader <span id="currRef" class="small"></span></div>
+        <div style="display:flex;gap:8px">
+          <select id="bookSelect"></select>
+          <select id="chapterSelect"></select>
+          <button id="prevChap">◀</button>
+          <button id="nextChap">▶</button>
+          <button id="backToToday" class="ghost">Today's Reading</button>
+        </div>
+      </div>
+      <div class="reader" id="reader"></div>
+      <div class="footer small">Tap a verse to add a note. Notes default to private.</div>
+    </div>
+
+    <div class="col" style="flex-basis:380px;max-width:380px">
+      <div class="panel">
+        <div style="font-weight:700;margin-bottom:8px">Add Note</div>
+        <div class="form-row">
+          <label class="small">Selected Verse</label>
+          <input id="selectedRef" class="input" readonly>
+        </div>
+        <div class="form-row">
+          <label class="small">Note Type</label>
+          <select id="noteType" class="input">
+            <option value="Observation">Observation</option>
+            <option value="Question">Question</option>
+            <option value="Application">Application</option>
+            <option value="Prayer">Prayer</option>
+            <option value="CrossReference">Cross-reference</option>
+            <option value="PersonalReflection">Personal Reflection</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="small">Visibility</label>
+          <select id="visibility" class="input">
+            <option value="PRIVATE">Private</option>
+            <option value="GROUP">Group</option>
+            <option value="PUBLIC">Public</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="small">Note</label>
+          <textarea id="noteBody" rows="6" class="input"></textarea>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button id="saveNote">Save Note</button>
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-weight:700">Group Study — Demo Group <span class="badge">17 members</span></div>
+          <button id="regenerateSummary">Regenerate Summary</button>
+        </div>
+        <div style="margin-top:8px">
+          <div class="small">Daily Question</div>
+          <div id="dailyQuestion" class="small" style="margin-bottom:8px;font-style:italic">What does this passage teach us about God's provision?</div>
+        </div>
+
+        <div style="margin-top:10px" class="note-list" id="groupNotes"></div>
+
+        <div style="margin-top:12px">
+          <div style="font-weight:700">AI-Generated Group Summary</div>
+          <div id="aiSummary" class="summary small">(No summary yet)</div>
+          <div style="margin-top:8px;display:flex;gap:8px;justify-content:flex-end">
+            <button id="viewSources">View Source Notes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:18px" class="panel">
+    <div style="font-weight:700">Reading Plan (Demo)</div>
+    <div class="small" id="planProgress">Day 1 of 10 • 0% complete</div>
+    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap" id="planDays"></div>
+  </div>
+
+</div>
+
+<!-- Note modal (verse-centered discussion) -->
+<div id="noteModal" class="note-modal">
+  <div class="modal-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div style="font-weight:700">Verse Discussion</div>
+      <button id="closeModal">Close</button>
+    </div>
+    <div id="modalVerseRef" class="small" style="margin-bottom:8px;font-style:italic"></div>
+    <div id="modalVerseText" style="margin-bottom:12px"></div>
+    <div style="font-weight:700;margin-bottom:8px">Group Notes</div>
+    <div id="modalNotes" class="note-list" style="margin-bottom:12px"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button id="modalAddReply">Add Reply</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+// Collaborative Bible Study — demo implementation
+// Key points:
+// - Uses bible-api.com for KJV passages (replaceable through BibleService)
+// - Saves notes to Firestore collection "studyNotes" (fields documented in README)
+// - Enforces visibility client-side in demo; FIRESTORE RULES provided in repo to enforce server-side
+
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import {
+  getFirestore, collection, addDoc, getDocs, query, where, orderBy, serverTimestamp
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+// Reuse existing Firebase config from project
+const firebaseConfig = {
+  apiKey: "AIzaSyA3g--TT89iLyEQ5lvwI7mBcIygrls7iCQ",
+  authDomain: "daily-bread-973e9.firebaseapp.com",
+  projectId: "daily-bread-973e9"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* ------------------------- Demo reading plan ------------------------- */
+const demoPlan = {
+  id: 'demo-plan-1',
+  name: 'Demo 10-Day Plan',
+  startDate: (new Date()).toISOString().split('T')[0],
+  days: [
+    {day:1, ref:'John 6:22-40'},
+    {day:2, ref:'John 6:41-59'},
+    {day:3, ref:'John 7:1-13'},
+    {day:4, ref:'John 7:14-36'},
+    {day:5, ref:'John 7:37-52'},
+    {day:6, ref:'John 8:1-11'},
+    {day:7, ref:'John 8:12-30'},
+    {day:8, ref:'John 8:31-47'},
+    {day:9, ref:'John 8:48-59'},
+    {day:10, ref:'John 9'}
+  ]
+};
+let currentDayIndex = 0; // 0-based for demo
+
+/* ------------------------- Bible service ------------------------- */
+class BibleService {
+  constructor(translation='kjv'){
+    this.translation = translation;
+  }
+  // fetch passage range (e.g. "John 6:22-40")
+  async fetchPassage(ref){
+    const url = 'https://bible-api.com/' + encodeURIComponent(ref) + '?translation=' + encodeURIComponent(this.translation);
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('Bible API error');
+    const data = await res.json();
+    // bible-api returns .verses array and .text
+    return data;
+  }
+}
+
+const bible = new BibleService('kjv');
+
+/* ------------------------- Small auth shim for demo ------------------------- */
+// The repo doesn't currently wire full Firebase Auth in the UI. For the demo
+// we allow the user to enter a name once; in production, this should use
+// authenticated user.uid and server-side security rules.
+let currentUser = { id: 'demo-user-1', name: 'Demo User' };
+
+/* ------------------------- State ------------------------- */
+const state = {
+  currentBook: null,
+  currentChapter: null,
+  currentRef: null,
+  selectedVerse: null,
+  groupId: 'demo-group-1'
+};
+
+/* ------------------------- DOM helpers ------------------------- */
+const $ = id => document.getElementById(id);
+
+/* ------------------------- Init UI ------------------------- */
+function renderPlan(){
+  $('todayLabel').textContent = `Day ${demoPlan.days[currentDayIndex].day} • ${demoPlan.days[currentDayIndex].ref}`;
+  const container = $('planDays');
+  container.innerHTML = demoPlan.days.map((d,i)=>`
+    <button class="ghost" data-day="${i}" style="padding:8px;border-radius:6px">Day ${d.day}: ${d.ref}</button>
+  `).join('');
+  container.querySelectorAll('button[data-day]').forEach(b=>b.addEventListener('click',()=>{
+    currentDayIndex = Number(b.dataset.day);
+    openRef(demoPlan.days[currentDayIndex].ref);
+  }));
+  updateProgress();
+}
+function updateProgress(){
+  const total = demoPlan.days.length;
+  const done = 0; // demo: integrate ReadingProgress in later phase
+  $('planProgress').textContent = `Day ${demoPlan.days[currentDayIndex].day} of ${total} • ${Math.round((done/total)*100)}% complete`;
+}
+
+/* ------------------------- Bible navigation ------------------------- */
+async function openRef(ref){
+  try{
+    $('currRef').textContent = ref;
+    state.currentRef = ref;
+    // fetch from BibleService
+    const data = await bible.fetchPassage(ref);
+    showPassage(data);
+    // attempt to set book/chapter selects based on returned data
+    if(data.reference){
+      // data.reference like "John 6:22-40"
+    }
+  }catch(err){
+    console.error(err);
+    $('reader').innerHTML = '<div class="small">Unable to load passage.</div>';
+  }
+}
+
+function showPassage(data){
+  const container = $('reader');
+  container.innerHTML = '';
+  // bible-api returns .verses array
+  const verses = data.verses || [];
+  // Render header
+  const header = document.createElement('div');
+  header.style.marginBottom='8px';
+  header.innerHTML = `<div style="font-weight:700">${data.reference}</div><div class="small" style="margin-top:6px">${data.text.slice(0,200)}...</div>`;
+  container.appendChild(header);
+
+  verses.forEach(v=>{
+    const el = document.createElement('div');
+    el.className = 'verse';
+    el.dataset.book = v.book_name || data.book_name || '';
+    el.dataset.chapter = v.chapter || '';
+    el.dataset.verse = v.verse || '';
+    el.innerHTML = `
+      <div class="verse-num">${v.verse}</div>
+      <div class="verse-text">${v.text}</div>
+      <div class="verse-actions">
+        <button class="add-note">Add Note</button>
+        <button class="highlight">Highlight</button>
+        <button class="share">Share</button>
+      </div>
+    `;
+    // click anywhere selects verse
+    el.querySelector('.add-note').addEventListener('click',()=>selectVerse(el));
+    el.querySelector('.highlight').addEventListener('click',()=>toggleHighlight(el.dataset.book,el.dataset.chapter,el.dataset.verse));
+    el.querySelector('.share').addEventListener('click',()=>openShareDialog(el.dataset.book,el.dataset.chapter,el.dataset.verse));
+    container.appendChild(el);
+  });
+}
+
+function selectVerse(el){
+  const book = el.dataset.book;
+  const chapter = el.dataset.chapter;
+  const verse = el.dataset.verse;
+  const ref = `${book} ${chapter}:${verse}`;
+  $('selectedRef').value = ref;
+  $('noteBody').focus();
+}
+
+function toggleHighlight(book,chapter,verse){
+  alert('Highlight (demo): ' + `${book} ${chapter}:${verse}`);
+}
+function openShareDialog(b,c,v){
+  alert('Share dialog (demo): ' + `${b} ${c}:${v}`);
+}
+
+/* ------------------------- Notes (Firestore) ------------------------- */
+async function saveNote(){
+  const body = $('noteBody').value.trim();
+  if(!body) return alert('Write a note first');
+  const visibility = $('visibility').value;
+  const type = $('noteType').value;
+  const ref = $('selectedRef').value || demoPlan.days[currentDayIndex].ref;
+  // parse ref into book/chapter/verse (best-effort)
+  const match = ref.match(/([A-Za-z0-9 ]+)\s+(\d+):(\d+)/);
+  let book=''; let chapter=null; let verse=null;
+  if(match){ book = match[1].trim(); chapter = Number(match[2]); verse = Number(match[3]); }
+
+  const note = {
+    authorId: currentUser.id,
+    authorName: currentUser.name,
+    groupId: state.groupId,
+    planId: demoPlan.id,
+    readingDay: demoPlan.days[currentDayIndex].day,
+    translation: 'KJV',
+    book: book,
+    chapter: chapter,
+    verse: verse,
+    title: '',
+    body: body,
+    type: type,
+    visibility: visibility,
+    tags: [],
+    createdAt: new Date().toISOString()
+  };
+  // Save to Firestore (demo)
+  try{
+    await addDoc(collection(db,'studyNotes'), note);
+    $('noteBody').value='';
+    $('selectedRef').value='';
+    loadGroupNotes();
+    alert('Saved (demo)');
+  }catch(e){
+    console.error(e);
+    alert('Save failed');
+  }
+}
+
+async function loadGroupNotes(){
+  // For demo: load notes for demo group and today's reading; filter out PRIVATE
+  const q = query(collection(db,'studyNotes'), where('groupId','==',state.groupId));
+  const snap = await getDocs(q);
+  const list = [];
+  snap.forEach(d=>{
+    const n = d.data(); n.id = d.id;
+    // client-side filter: only show GROUP or PUBLIC in group feed
+    if(n.visibility === 'GROUP' || n.visibility === 'PUBLIC'){
+      list.push(n);
+    }
+  });
+  // sort by createdAt desc
+  list.sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt));
+  renderGroupNotes(list);
+  // store last used for AI source view
+  state._lastGroupNotes = list;
+}
+
+function renderGroupNotes(notes){
+  const c = $('groupNotes');
+  if(!notes.length) { c.innerHTML = '<div class="small">No shared notes yet</div>'; return }
+  c.innerHTML = notes.map(n=>`
+    <div class="note-card">
+      <div class="note-meta"><strong>${escapeHtml(n.authorName)}</strong> • ${n.type} • <span class="small">${n.book?`${n.book} ${n.chapter}:${n.verse}`: demoPlan.days[currentDayIndex].ref}</span></div>
+      <div>${escapeHtml(n.body)}</div>
+    </div>
+  `).join('');
+}
+
+function escapeHtml(s){ return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+
+/* ------------------------- AI Summary (simulated) ------------------------- */
+function generateAISummaryFromNotes(notes){
+  // Only use visible notes (already filtered)
+  if(!notes || !notes.length) return '(No shared notes to summarize)';
+  // Group by type
+  const sections = {};
+  notes.forEach(n=>{
+    const t = n.type || 'Observation';
+    if(!sections[t]) sections[t]=[];
+    sections[t].push(n.body);
+  });
+  // simple theme extraction: top words across notes
+  const stop = new Set(['the','and','of','to','a','in','is','that','it','for','on','with','this','be','are','we','our']);
+  const freq = {};
+  notes.forEach(n=>{
+    n.body.toLowerCase().split(/[^a-z0-9]+/).forEach(w=>{ if(!w||stop.has(w)||w.length<3) return; freq[w]=(freq[w]||0)+1 });
+  });
+  const themes = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,6).map(x=>x[0]);
+  let out = '';
+  out += '<div style="font-weight:700;margin-bottom:6px">Main Themes</div>';
+  out += themes.length?('<div>'+themes.map(t=>'• '+t).join('<br>')+'</div>'):'<div>(none)</div>';
+  out += '<hr>';
+  Object.keys(sections).forEach(k=>{
+    out += `<div style="font-weight:700;margin-top:8px">${k}s</div>`;
+    sections[k].slice(0,6).forEach(s=> out += `<div style="margin-top:6px">- ${escapeHtml(s.slice(0,240))}</div>`);
+  });
+  out += '<hr><div style="font-size:0.85rem;color:#444;margin-top:6px">(This summary was generated from '+notes.length+' shared notes. This is a simulated client-side summary for the demo. In production an authorized server-side AI service would be called with only authorized notes.)</div>';
+  return out;
+}
+
+function regenerateSummary(){
+  const notes = state._lastGroupNotes || [];
+  $('aiSummary').innerHTML = generateAISummaryFromNotes(notes);
+}
+
+/* ------------------------- Modal / verse-centered discussion ------------------------- */
+function openVerseModal(book,chapter,verse,text){
+  $('modalVerseRef').textContent = `${book} ${chapter}:${verse}`;
+  $('modalVerseText').textContent = text;
+  // load notes for that verse
+  const notes = (state._lastGroupNotes||[]).filter(n=>n.book===book && n.chapter===Number(chapter) && n.verse===Number(verse));
+  $('modalNotes').innerHTML = notes.length?notes.map(n=>`<div class="note-card"><div class="note-meta"><strong>${escapeHtml(n.authorName)}</strong> • ${n.type}</div><div>${escapeHtml(n.body)}</div></div>`).join(''):'<div class="small">No group notes for this verse.</div>';
+  $('noteModal').style.display = 'flex';
+}
+
+/* ------------------------- Helpers: initialize demo UI ------------------------- */
+$('openReaderBtn').addEventListener('click',()=>openRef(demoPlan.days[currentDayIndex].ref));
+$('backToToday').addEventListener('click',()=>openRef(demoPlan.days[currentDayIndex].ref));
+$('saveNote').addEventListener('click',saveNote);
+$('regenerateSummary').addEventListener('click',regenerateSummary);
+$('closeModal').addEventListener('click',()=>$('noteModal').style.display='none');
+$('viewSources').addEventListener('click',()=>{
+  const notes = state._lastGroupNotes || [];
+  alert('Source notes count: '+notes.length+' (demo)');
+});
+
+// load initial UI
+renderPlan();
+openRef(demoPlan.days[currentDayIndex].ref);
+loadGroupNotes();
+
+</script>
+</body>
+</html>

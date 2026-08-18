@@ -6,38 +6,44 @@
 <title>Collaborative Bible Study — Demo</title>
 <style>
 :root{
-  --bg:#f6f7fb; --panel:#ffffff; --accent:#7c4dff; --accent-2:#8b4513; --muted:#6b7280; --glass:rgba(255,255,255,0.7);
-  --radius:12px; --shadow:0 8px 30px rgba(16,24,40,0.08);
+  --bg:#f3e8df; /* warm parchment background */
+  --panel:#fff6ea; /* card background */
+  --accent:#8b4513; /* saddlebrown accent used across repo */
+  --accent-2:#7c4dff; /* fallback accent for minor elements */
+  --muted:#7a4a1f; /* darker muted/brown */
+  --card:#f5e6cc; /* header text color on dark background */
+  --glass:rgba(245,230,204,0.7);
+  --radius:12px; --shadow:0 6px 18px rgba(0,0,0,0.08);
 }
 *{box-sizing:border-box}
 html,body{height:100%}
-body{font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, 'Helvetica Neue', Arial; margin:0;background:linear-gradient(180deg,var(--bg),#ecf0ff);color:#111;line-height:1.45}
-.header{background:linear-gradient(90deg,#0f172a 0%, #111827 60%);color:#fff;padding:18px 22px;box-shadow:0 6px 24px rgba(2,6,23,0.35)}
+body{font-family:Georgia, serif; margin:0; background:linear-gradient(180deg,var(--bg),#e3caa6); color:#222; line-height:1.45}
+.header{background:#000;color:var(--card);padding:18px 22px;box-shadow:0 6px 24px rgba(0,0,0,0.25)}
 .header-inner{max-width:1100px;margin:0 auto;display:flex;gap:16px;align-items:center;justify-content:space-between}
 .brand{display:flex;gap:12px;align-items:center}
-.brand img{height:44px;border-radius:8px}
-.brand .title{font-weight:700;font-size:1.1rem}
+.brand img{height:56px;border-radius:0}
+.brand .title{font-weight:700;font-size:1.05rem}
 .controls{display:flex;gap:12px;align-items:center}
 .select, .input, select, button{font-family:inherit}
-.select, .input{padding:8px 10px;border-radius:10px;border:1px solid rgba(15,23,42,0.08);background:#fff}
-.select:focus, .input:focus{outline:2px solid rgba(124,77,255,0.12);box-shadow:0 4px 18px rgba(124,77,255,0.06)}
-.plan-title{font-size:0.95rem;color:var(--glass);opacity:0.95}
+.select, .input{padding:8px 10px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);background:var(--panel)}
+.select:focus, .input:focus{outline:2px solid rgba(139,69,19,0.12);box-shadow:0 4px 18px rgba(139,69,19,0.06)}
+.plan-title{font-size:0.95rem;color:var(--card);opacity:0.95}
 .name-area{display:flex;gap:8px;align-items:center}
-.name-badge{background:rgba(255,255,255,0.06);padding:6px 10px;border-radius:999px;color:#fff;font-weight:600}
-.btn{background:linear-gradient(180deg,var(--accent),#5a2cff);color:#fff;border:none;padding:8px 12px;border-radius:10px;cursor:pointer;box-shadow:0 8px 20px rgba(124,77,255,0.12)}
-.btn.ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,0.12);box-shadow:none}
+.name-badge{background:transparent;padding:6px 10px;border-radius:999px;color:var(--card);font-weight:600;border:1px solid rgba(245,230,204,0.06)}
+.btn{background:linear-gradient(180deg,var(--accent),#643313);color:var(--card);border:none;padding:8px 12px;border-radius:8px;cursor:pointer;box-shadow:0 6px 18px rgba(139,69,19,0.08)}
+.btn.ghost{background:transparent;color:var(--card);border:1px solid rgba(245,230,204,0.08);box-shadow:none}
 .container{max-width:1100px;margin:20px auto;padding:18px}
 .grid{display:grid;grid-template-columns:1fr 380px;gap:18px}
 .card{background:var(--panel);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
-.reader{height:60vh;overflow:auto;padding:18px;border-radius:10px;background:linear-gradient(180deg,#fff,#fbfbff)}
-.reader .verse{display:flex;gap:12px;padding:10px;border-radius:8px;margin-bottom:8px;border:1px solid rgba(15,23,42,0.04)}
+.reader{height:60vh;overflow:auto;padding:18px;border-radius:10px;background:linear-gradient(180deg,#fff,#fff6ea)}
+.reader .verse{display:flex;gap:12px;padding:10px;border-radius:8px;margin-bottom:8px;border:1px solid rgba(0,0,0,0.03);background:#fff}
 .verse-num{width:42px;color:var(--muted);font-weight:700}
-.verse-text{flex:1;color:#111}
+.verse-text{flex:1;color:#222}
 .verse-actions{display:flex;gap:8px}
 .note-list{max-height:42vh;overflow:auto}
-.note-card{background:#fff;border-radius:8px;padding:10px;margin-bottom:10px;border-left:4px solid var(--accent-2)}
-.small{color:var(--muted);font-size:0.92rem}
-.footer{margin-top:12px;color:var(--muted)}
+.note-card{background:#fff;border-radius:8px;padding:10px;margin-bottom:10px;border-left:4px solid var(--accent)}
+.small{color:#4b3a2a;font-size:0.92rem}
+.footer{margin-top:12px;color:#4b3a2a}
 @media(max-width:900px){.grid{grid-template-columns:1fr;}.header-inner{flex-direction:column;align-items:flex-start;gap:12px}.brand{width:100%;justify-content:space-between}}
 </style>
 </head>
@@ -191,80 +197,4 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const demoPlan = { id: 'demo-plan-1', name: 'Demo 12-Day Plan', startDate: (new Date()).toISOString().split('T')[0], days: [ {day:1, ref:'John 6:22-40'},{day:2, ref:'John 6:41-59'},{day:3, ref:'John 7:1-13'},{day:4, ref:'John 7:14-36'},{day:5, ref:'John 7:37-52'},{day:6, ref:'John 8:1-11'},{day:7, ref:'John 8:12-30'},{day:8, ref:'John 8:31-47'},{day:9, ref:'John 8:48-59'},{day:10, ref:'John 9'},{day:11, ref:'John 10:1-18'},{day:12, ref:'John 10:19-42'} ] };
-let currentDayIndex = 0;
-
-class BibleService { constructor(translation='kjv'){ this.translation = translation } async fetchPassage(ref){ const url = 'https://bible-api.com/' + encodeURIComponent(ref) + '?translation=' + encodeURIComponent(this.translation); const res = await fetch(url); if(!res.ok) throw new Error('Bible API error'); return await res.json(); }}
-const bible = new BibleService('kjv');
-
-let currentUser = { id: null, name: null };
-function loadUserFromStorage(){ const name = localStorage.getItem('cbs_user_name'); const id = localStorage.getItem('cbs_user_id'); if(name && id){ currentUser = { id, name } } }
-function saveUserToStorage(){ localStorage.setItem('cbs_user_name', currentUser.name); localStorage.setItem('cbs_user_id', currentUser.id); }
-
-const state = { currentBook: null, currentChapter: null, currentRef: null, selectedVerse: null, groupId: 'demo-group-1' };
-const $ = id => document.getElementById(id);
-
-function escapeHtml(s){ return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
-
-function showPassage(data){ const container = $('reader'); container.innerHTML=''; const verses = data.verses || []; const header = document.createElement('div'); header.style.marginBottom='8px'; header.innerHTML = `<div style="font-weight:700">${data.reference||''}</div><div class="small" style="margin-top:6px">${(data.text||'').slice(0,220)}...</div>`; container.appendChild(header); verses.forEach(v=>{ const el = document.createElement('div'); el.className='verse'; el.dataset.book = v.book_name || data.book_name || ''; el.dataset.chapter = v.chapter || ''; el.dataset.verse = v.verse || ''; el.innerHTML = `<div class="verse-num">${v.verse}</div><div class="verse-text">${v.text}</div><div class="verse-actions"><button class="btn ghost">Add</button></div>`; el.querySelector('.btn')?.addEventListener('click', ()=>selectVerse(el)); container.appendChild(el); }); }
-
-async function loadGroupNotes(){ try{ const q = query(collection(db,'studyNotes'), where('groupId','==',state.groupId)); const snap = await getDocs(q); const list = []; snap.forEach(d=>{ const n = d.data(); n.id = d.id; if(n.visibility==='GROUP' || n.visibility==='PUBLIC') list.push(n); }); list.sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt)); renderGroupNotes(list); state._lastGroupNotes = list; }catch(e){ console.error(e); renderGroupNotes([]); } }
-
-function renderGroupNotes(notes){ const c = $('groupNotes'); if(!notes || !notes.length){ c.innerHTML = '<div class="small">No shared notes yet</div>'; return } c.innerHTML = notes.map(n=>`<div class="note-card"><div class="note-meta"><strong>${escapeHtml(n.authorName)}</strong> • ${n.type} • <span class="small">${n.book?`${n.book} ${n.chapter}:${n.verse}`:''}</span></div><div>${escapeHtml(n.body)}</div></div>`).join(''); }
-
-async function saveNote(){ if(!ensureUserName()) return; const body = $('noteBody').value.trim(); if(!body) return alert('Write a note first'); const visibility = $('visibility').value; const type = $('noteType').value; const ref = $('selectedRef').value || demoPlan.days[currentDayIndex].ref; const match = ref.match(/([A-Za-z0-9 ]+)\s+(\d+):(\d+)/); let book=''; let chapter=null; let verse=null; if(match){ book = match[1].trim(); chapter = Number(match[2]); verse = Number(match[3]); } if(!currentUser.id) currentUser.id = 'user-' + Date.now(); const note = { authorId: currentUser.id, authorName: currentUser.name, groupId: state.groupId, planId: demoPlan.id, readingDay: demoPlan.days[currentDayIndex].day, translation: 'KJV', book, chapter, verse, title:'', body, type, visibility, tags:[], createdAt: new Date().toISOString() }; try{ await addDoc(collection(db,'studyNotes'), note); $('noteBody').value=''; $('selectedRef').value=''; loadGroupNotes(); alert('Saved (demo)'); }catch(e){ console.error(e); alert('Save failed'); } }
-
-function selectVerse(el){ const book = el.dataset.book; const chapter = el.dataset.chapter; const verse = el.dataset.verse; const ref = `${book} ${chapter}:${verse}`; $('selectedRef').value = ref; $('noteBody').focus(); }
-
-function updateNameDisplay(){ const nd = document.getElementById('nameDisplay'); nd.textContent = currentUser.name?currentUser.name:'Not signed'; }
-
-function openRef(ref){ openRefAsync(ref).catch(e=>console.error(e)); }
-async function openRefAsync(ref){ try{ $('currRef').textContent = ref; state.currentRef = ref; const data = await bible.fetchPassage(ref); showPassage(data); }catch(e){ console.error(e); $('reader').innerHTML = '<div class="small">Unable to load passage.</div>'; } }
-
-/* ------------------------- Reading plans loader & UI selector ------------------------- */
-async function loadReadingPlans(){
-  try{
-    const res = await fetch('/data/reading_plans.json');
-    const data = await res.json();
-    window._readingPlans = data;
-    const planSelect = document.getElementById('planSelect');
-    const daySelect = document.getElementById('planDaySelect');
-    planSelect.innerHTML = '<option value="">Use Rotation (auto)</option>' + data.plans.map(p=>`<option value="${p.id}">${p.title}</option>`).join('');
-    const saved = localStorage.getItem('cbs_selected_plan');
-    if(saved) planSelect.value = saved;
-    function populateDaySelect(plan){ if(!plan){ daySelect.style.display='none'; daySelect.innerHTML=''; return; } daySelect.style.display='inline-block'; daySelect.innerHTML = plan.days.map((d,i)=>`<option value="${i}">${'Day '+d.day}: ${d.reading}</option>`).join(''); }
-    function applyPlanById(planId, dayIndex=0){ if(!planId){ localStorage.removeItem('cbs_selected_plan'); return loadTodayPlan(); } const plan = data.plans.find(p=>p.id===planId); if(!plan) return; localStorage.setItem('cbs_selected_plan', planId); state.selectedPlan = plan; state.selectedDayIndex = Number(dayIndex)||0; const day = plan.days[state.selectedDayIndex]; document.getElementById('todayLabel').textContent = `Day ${day.day} • ${day.reading}`; document.getElementById('planTitle').textContent = `${plan.title} — ${plan.theme}`; openRef(day.reading); populateDaySelect(plan); daySelect.value = String(state.selectedDayIndex); }
-    planSelect.addEventListener('change', ()=>{ const id = planSelect.value; if(!id){ localStorage.removeItem('cbs_selected_plan'); loadTodayPlan(); } else { applyPlanById(id,0); } });
-    daySelect.addEventListener('change', ()=>{ const idx = Number(daySelect.value); const planId = planSelect.value || localStorage.getItem('cbs_selected_plan'); if(planId) applyPlanById(planId, idx); });
-    if(planSelect.value){ applyPlanById(planSelect.value,0); } else { await loadTodayPlan(); }
-  }catch(e){ console.error('loadReadingPlans error', e); }
-}
-
-async function loadTodayPlan(){ try{ const res = await fetch('/data/reading_plans.json'); const data = await res.json(); const weekday = (new Date()).toLocaleString('en-US',{ weekday:'long' }); const planId = data.rotation[weekday]; if(!planId){ // fallback to first plan
-      const plan = data.plans[0]; document.getElementById('planTitle').textContent = `${plan.title} — ${plan.theme}`; const day = plan.days[0]; document.getElementById('todayLabel').textContent = `Day ${day.day} • ${day.reading}`; return; }
-    const plan = data.plans.find(p=>p.id===planId); if(!plan) return; const map = { 'Monday':0,'Tuesday':1,'Wednesday':2,'Thursday':3,'Friday':4 }; const idx = map[weekday] ?? 0; const day = plan.days[idx]; document.getElementById('planTitle').textContent = `${plan.title} — ${plan.theme}`; document.getElementById('todayLabel').textContent = `Day ${day.day} • ${day.reading}`; state._today = { plan, day }; }catch(e){ console.error('loadTodayPlan error', e); } }
-
-/* ------------------------- init & handlers ------------------------- */
-document.getElementById('changeNameBtn')?.addEventListener('click', ()=>{ document.getElementById('nameModal').style.display='flex'; document.getElementById('userNameInput').focus(); });
-document.getElementById('saveName')?.addEventListener('click', ()=>{ const v = document.getElementById('userNameInput').value.trim(); if(!v) return alert('Please enter a display name'); currentUser.name = v; if(!currentUser.id) currentUser.id = 'user-'+Date.now(); saveUserToStorage(); document.getElementById('nameModal').style.display='none'; updateNameDisplay(); });
-
-document.getElementById('openReaderBtn')?.addEventListener('click', ()=>{ const t = state.selectedPlan && state.selectedDayIndex!=null ? state.selectedPlan.days[state.selectedDayIndex].reading : (window._today?.day?.reading || demoPlan.days[currentDayIndex].ref); openRef(t); });
-
-document.getElementById('saveNote')?.addEventListener('click', saveNote);
-document.getElementById('regenerateSummary')?.addEventListener('click', ()=>{ const notes = state._lastGroupNotes || []; document.getElementById('aiSummary').innerHTML = generateAISummaryFromNotes(notes); });
-document.getElementById('closeModal')?.addEventListener('click', ()=>document.getElementById('noteModal').style.display='none');
-document.getElementById('viewSources')?.addEventListener('click', ()=>{ const notes = state._lastGroupNotes || []; alert('Source notes count: '+notes.length+' (demo)'); });
-
-loadUserFromStorage(); updateNameDisplay(); if(!currentUser.name) document.getElementById('nameModal').style.display='flex';
-
-// initialize plans and UI
-await loadReadingPlans();
-
-// initial UI calls
-renderPlan();
-openRef(demoPlan.days[currentDayIndex].ref);
-loadGroupNotes();
-
-</script>
-</body>
-</html>
+const demoPlan = { id: 'demo-plan-1', name: 'Demo 12-Day Plan', startDate: (new Date()).toISOString().split('T')[0], days: [ {day:1, ref:'John 6:22-40'},{day:2, ref:'John 6:41-59'},{day:3, ref:'J[...]

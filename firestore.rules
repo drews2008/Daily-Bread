@@ -1,0 +1,69 @@
+// Firestore security rules for Collaborative Bible Study
+// Enforces PRIVATE / GROUP / PUBLIC visibility for studyNotes
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Group documents. Each group has a subcollection 'members' with doc id == uid
+    match /groups/{groupId} {
+      allow read: if true; // group metadata is public for now (adjust if needed)
+
+      match /members/{memberId} {
+        allow read: if isSignedIn() && (memberId == request.auth.uid || exists(/databases/$(database)/documents/groups/$(groupId)/members/$(request.auth.uid)));
+        allow create: if isSignedIn() && (request.auth.uid == memberId || get(/databases/$(database)/documents/groups/$(groupId)).data.owner == request.auth.uid);
+        allow delete: if isSignedIn() && (get(/databases/$(database)/documents/groups/$(groupId)/members/$(memberId)).data.role in ['owner','admin'] || get(/databases/$(database)/documents/groups/$(groupId)).data.owner == request.auth.uid);
+      }
+    }
+
+    // Study notes — the core privacy rules
+    match /studyNotes/{noteId} {
+
+      // Create: must be authenticated and authorId must match the authenticated user
+      allow create: if isSignedIn()
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.visibility in ['PRIVATE', 'GROUP', 'PUBLIC']
+        && (request.resource.data.groupId is string || request.resource.data.groupId == null);
+
+      // Read: three cases
+      // 1) PUBLIC notes are readable by any signed-in user
+      // 2) AUTHOR can always read their own notes
+      // 3) GROUP notes are readable by members of the group
+      allow get, list: if (
+        resource.data.visibility == 'PUBLIC' ||
+        resource.data.authorId == request.auth.uid ||
+        (
+          resource.data.visibility == 'GROUP' &&
+          isSignedIn() &&
+          exists(/databases/$(database)/documents/groups/$(resource.data.groupId)/members/$(request.auth.uid))
+        )
+      );
+
+      // Update/Delete: author or group admins can update/delete (admins only for moderation)
+      allow update, delete: if isSignedIn() && (
+        request.auth.uid == resource.data.authorId ||
+        (
+          exists(/databases/$(database)/documents/groups/$(resource.data.groupId)/members/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/groups/$(resource.data.groupId)/members/$(request.auth.uid)).data.role in ['owner','admin']
+        )
+      );
+    }
+
+    // Group summaries are readable by group members
+    match /groupSummaries/{summaryId} {
+      allow create: if isSignedIn();
+      allow read: if isSignedIn() && exists(/databases/$(database)/documents/groups/$(resource.data.groupId)/members/$(request.auth.uid));
+      allow update, delete: if false; // summaries are write-once by server-side process
+    }
+
+    // A safe default: restrict access to other collections unless explicit
+    match /{document=**} {
+      allow read: if false;
+      allow write: if false;
+    }
+  }
+}

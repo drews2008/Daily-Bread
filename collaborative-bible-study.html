@@ -37,12 +37,19 @@ button.ghost{background:transparent;color:#222;border:1px solid rgba(0,0,0,0.06)
 .summary{background:#fff;padding:12px;border-radius:8px}
 .footer{margin-top:12px;font-size:0.9rem;color:#333}
 @media(max-width:900px){.row{flex-direction:column}}
+/* Name modal styles */
+#nameModal .modal-card{max-width:420px}
+#nameDisplay{font-weight:600;margin-left:10px}
 </style>
 </head>
 <body>
 <header class="header">
   <img src="DailyBreadLogo.png" alt="Daily Bread" style="height:56px;display:block;margin:0 auto 8px">
-  <div class="h1">Collaborative Bible Study — Demo</div>
+  <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap">
+    <div class="h1">Collaborative Bible Study — Demo</div>
+    <div id="nameDisplay" class="small"></div>
+    <button id="changeNameBtn" class="ghost">Change Name</button>
+  </div>
   <div class="small">Prototype: KJV reader, verse notes, group sharing, AI summary (simulated)</div>
 </header>
 <div class="container">
@@ -138,7 +145,7 @@ button.ghost{background:transparent;color:#222;border:1px solid rgba(0,0,0,0.06)
 
   <div style="margin-top:18px" class="panel">
     <div style="font-weight:700">Reading Plan (Demo)</div>
-    <div class="small" id="planProgress">Day 1 of 10 • 0% complete</div>
+    <div class="small" id="planProgress">Day 1 of 12 • 0% complete</div>
     <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap" id="planDays"></div>
   </div>
 
@@ -161,12 +168,29 @@ button.ghost{background:transparent;color:#222;border:1px solid rgba(0,0,0,0.06)
   </div>
 </div>
 
+<!-- Name modal -->
+<div id="nameModal" class="note-modal">
+  <div class="modal-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div style="font-weight:700">Enter Your Name</div>
+    </div>
+    <div class="form-row">
+      <label class="small">Your display name (required)</label>
+      <input id="userNameInput" class="input" placeholder="First and Last or a display name">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button id="saveName">Save Name</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 // Collaborative Bible Study — demo implementation
 // Key points:
 // - Uses bible-api.com for KJV passages (replaceable through BibleService)
 // - Saves notes to Firestore collection "studyNotes" (fields documented in README)
 // - Enforces visibility client-side in demo; FIRESTORE RULES provided in repo to enforce server-side
+// - Requires each user to enter a display name before creating notes (stored in localStorage for demo)
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import {
@@ -182,10 +206,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* ------------------------- Demo reading plan ------------------------- */
+/* ------------------------- Demo reading plan (12 days) ------------------------- */
 const demoPlan = {
   id: 'demo-plan-1',
-  name: 'Demo 10-Day Plan',
+  name: 'Demo 12-Day Plan',
   startDate: (new Date()).toISOString().split('T')[0],
   days: [
     {day:1, ref:'John 6:22-40'},
@@ -197,7 +221,9 @@ const demoPlan = {
     {day:7, ref:'John 8:12-30'},
     {day:8, ref:'John 8:31-47'},
     {day:9, ref:'John 8:48-59'},
-    {day:10, ref:'John 9'}
+    {day:10, ref:'John 9'},
+    {day:11, ref:'John 10:1-18'},
+    {day:12, ref:'John 10:19-42'}
   ]
 };
 let currentDayIndex = 0; // 0-based for demo
@@ -220,11 +246,32 @@ class BibleService {
 
 const bible = new BibleService('kjv');
 
-/* ------------------------- Small auth shim for demo ------------------------- */
-// The repo doesn't currently wire full Firebase Auth in the UI. For the demo
-// we allow the user to enter a name once; in production, this should use
-// authenticated user.uid and server-side security rules.
-let currentUser = { id: 'demo-user-1', name: 'Demo User' };
+/* ------------------------- Name / small auth shim for demo ------------------------- */
+// Require each user to enter their display name. In production, use Firebase Auth.
+let currentUser = { id: null, name: null };
+
+function loadUserFromStorage(){
+  const name = localStorage.getItem('cbs_user_name');
+  const id = localStorage.getItem('cbs_user_id');
+  if(name && id){ currentUser = { id, name }; }
+}
+function saveUserToStorage(){
+  localStorage.setItem('cbs_user_name', currentUser.name);
+  localStorage.setItem('cbs_user_id', currentUser.id);
+}
+
+function showNameModal(){
+  $('nameModal').style.display = 'flex';
+  $('userNameInput').focus();
+}
+function hideNameModal(){
+  $('nameModal').style.display = 'none';
+}
+
+function ensureUserName(){
+  if(!currentUser.name){ showNameModal(); return false; }
+  return true;
+}
 
 /* ------------------------- State ------------------------- */
 const state = {
@@ -327,6 +374,7 @@ function openShareDialog(b,c,v){
 
 /* ------------------------- Notes (Firestore) ------------------------- */
 async function saveNote(){
+  if(!ensureUserName()) return; // require name
   const body = $('noteBody').value.trim();
   if(!body) return alert('Write a note first');
   const visibility = $('visibility').value;
@@ -336,6 +384,9 @@ async function saveNote(){
   const match = ref.match(/([A-Za-z0-9 ]+)\s+(\d+):(\d+)/);
   let book=''; let chapter=null; let verse=null;
   if(match){ book = match[1].trim(); chapter = Number(match[2]); verse = Number(match[3]); }
+
+  // ensure user has an id
+  if(!currentUser.id) currentUser.id = 'user-' + Date.now();
 
   const note = {
     authorId: currentUser.id,
@@ -444,6 +495,33 @@ function openVerseModal(book,chapter,verse,text){
   $('noteModal').style.display = 'flex';
 }
 
+/* ------------------------- Name modal handlers ------------------------- */
+function openNameModal(){
+  $('userNameInput').value = currentUser.name || '';
+  $('nameModal').style.display = 'flex';
+  $('userNameInput').focus();
+}
+
+$('saveName')?.addEventListener('click', ()=>{
+  const v = $('userNameInput').value.trim();
+  if(!v) return alert('Please enter a display name');
+  currentUser.name = v;
+  if(!currentUser.id) currentUser.id = 'user-'+Date.now();
+  saveUserToStorage();
+  hideNameModal();
+  updateNameDisplay();
+});
+
+$('changeNameBtn')?.addEventListener('click', ()=>openNameModal());
+
+function updateNameDisplay(){
+  $('nameDisplay').textContent = currentUser.name?('Signed in as: ' + currentUser.name):'';
+}
+
+function hideNameModal(){
+  $('nameModal').style.display = 'none';
+}
+
 /* ------------------------- Helpers: initialize demo UI ------------------------- */
 $('openReaderBtn').addEventListener('click',()=>openRef(demoPlan.days[currentDayIndex].ref));
 $('backToToday').addEventListener('click',()=>openRef(demoPlan.days[currentDayIndex].ref));
@@ -454,6 +532,11 @@ $('viewSources').addEventListener('click',()=>{
   const notes = state._lastGroupNotes || [];
   alert('Source notes count: '+notes.length+' (demo)');
 });
+
+// load initial user from localStorage; if not present, force name entry
+loadUserFromStorage();
+updateNameDisplay();
+if(!currentUser.name) showNameModal();
 
 // load initial UI
 renderPlan();

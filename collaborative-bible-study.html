@@ -3,386 +3,3477 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Collaborative Bible Study — Demo</title>
+<title>Daily Bread — Collaborative Bible Study</title>
+
 <style>
 :root{
-  --bg:#f3e8df; --panel:#fff6ea; --accent:#8b4513; --muted:#7a4a1f; --card:#f5e6cc;
+  --bg:#f3e8df;
+  --panel:#fff6ea;
+  --accent:#8b4513;
+  --muted:#7a4a1f;
+  --card:#f5e6cc;
+  --dark:#000;
 }
+
 *{box-sizing:border-box}
-body{font-family:Georgia,serif;margin:0;background:linear-gradient(180deg,var(--bg),#e3caa6);color:#222}
-.header{background:#000;color:var(--card);padding:20px;text-align:center}
-.container{max-width:1100px;margin:20px auto;padding:18px}
-.row{display:flex;gap:18px}
-.col{flex:1}
-.panel{background:var(--panel);padding:14px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.08)}
-.h1{font-size:1.25rem;margin:0}
-.controls{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
-button{background:#000;color:var(--card);border:none;padding:8px 12px;border-radius:6px;cursor:pointer}
-/* Make ghost buttons visible on dark header while keeping them subtle */
-button.ghost{background:transparent;color:var(--card);border:1px solid rgba(245,230,204,0.12);padding:6px 10px}
-button.ghost:hover{background:rgba(245,230,204,0.06)}
-.reading-card{margin-bottom:12px}
-.reader{padding:12px;max-height:60vh;overflow:auto;border-radius:8px;background:#fff}
-.verse{padding:8px 6px;border-bottom:1px solid #eee;display:flex;gap:12px;align-items:flex-start}
-.verse-num{width:40px;color:var(--muted);font-weight:bold}
-.verse-text{flex:1}
-.verse-actions{display:flex;gap:6px}
-.small{font-size:0.9rem;color:#444}
-.note-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.4)}
-.modal-card{background:var(--panel);padding:16px;border-radius:8px;width:90%;max-width:720px}
-.form-row{margin-bottom:8px}
-.input,textarea,select{width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;font-family:inherit}
-.note-list{max-height:40vh;overflow:auto}
-.note-card{background:#fff;padding:10px;border-radius:6px;margin-bottom:8px;border-left:4px solid var(--accent)}
-.note-meta{font-size:0.85rem;color:var(--muted);margin-bottom:6px}
-.badge{display:inline-block;background:var(--accent);color:var(--card);padding:2px 8px;border-radius:12px;font-size:0.75rem}
-.summary{background:#fff;padding:12px;border-radius:8px}
-.footer{margin-top:12px;font-size:0.9rem;color:#333}
-@media(max-width:900px){.row{flex-direction:column}}
-/* Name modal styles */
-#nameModal .modal-card{max-width:420px}
-#nameDisplay{font-weight:600;margin-left:10px}
+
+body{
+  font-family:Georgia,serif;
+  margin:0;
+  background:linear-gradient(180deg,var(--bg),#e3caa6);
+  color:#222;
+}
+
+.header{
+  background:#000;
+  color:var(--card);
+  padding:20px;
+  text-align:center;
+}
+
+.container{
+  max-width:1100px;
+  margin:20px auto;
+  padding:18px;
+}
+
+.row{
+  display:flex;
+  gap:18px;
+}
+
+.col{
+  flex:1;
+}
+
+.panel{
+  background:var(--panel);
+  padding:14px;
+  border-radius:10px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.08);
+}
+
+.h1{
+  font-size:1.25rem;
+  margin:0;
+}
+
+.controls{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin:12px 0;
+}
+
+button{
+  background:#000;
+  color:var(--card);
+  border:none;
+  padding:8px 12px;
+  border-radius:6px;
+  cursor:pointer;
+  font-family:inherit;
+}
+
+button:hover{
+  opacity:.85;
+}
+
+button:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+
+button.ghost{
+  background:transparent;
+  color:var(--dark);
+  border:1px solid rgba(0,0,0,.2);
+  padding:6px 10px;
+}
+
+.header button.ghost{
+  color:var(--card);
+  border-color:rgba(245,230,204,.25);
+}
+
+button.ghost:hover{
+  background:rgba(139,69,19,.08);
+}
+
+.header button.ghost:hover{
+  background:rgba(245,230,204,.06);
+}
+
+.reading-card{
+  margin-bottom:12px;
+}
+
+.reader{
+  padding:12px;
+  max-height:60vh;
+  overflow:auto;
+  border-radius:8px;
+  background:#fff;
+}
+
+.verse{
+  padding:10px 6px;
+  border-bottom:1px solid #eee;
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  cursor:pointer;
+  transition:.15s;
+}
+
+.verse:hover{
+  background:#fff8ee;
+}
+
+.verse.selected{
+  background:#f5e6cc;
+  border-left:4px solid var(--accent);
+  padding-left:2px;
+}
+
+.verse-num{
+  width:40px;
+  color:var(--muted);
+  font-weight:bold;
+  flex-shrink:0;
+}
+
+.verse-text{
+  flex:1;
+  line-height:1.55;
+}
+
+.verse-actions{
+  display:flex;
+  gap:6px;
+}
+
+.small{
+  font-size:.9rem;
+  color:#444;
+}
+
+.note-modal{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,.4);
+  z-index:1000;
+  padding:15px;
+}
+
+.modal-card{
+  background:var(--panel);
+  padding:16px;
+  border-radius:8px;
+  width:90%;
+  max-width:720px;
+  max-height:90vh;
+  overflow:auto;
+}
+
+.form-row{
+  margin-bottom:8px;
+}
+
+.input,
+textarea,
+select{
+  width:100%;
+  padding:8px;
+  border-radius:6px;
+  border:1px solid #ddd;
+  font-family:inherit;
+}
+
+textarea{
+  resize:vertical;
+}
+
+.note-list{
+  max-height:40vh;
+  overflow:auto;
+}
+
+.note-card{
+  background:#fff;
+  padding:10px;
+  border-radius:6px;
+  margin-bottom:8px;
+  border-left:4px solid var(--accent);
+}
+
+.note-meta{
+  font-size:.85rem;
+  color:var(--muted);
+  margin-bottom:6px;
+}
+
+.badge{
+  display:inline-block;
+  background:var(--accent);
+  color:var(--card);
+  padding:2px 8px;
+  border-radius:12px;
+  font-size:.75rem;
+}
+
+.summary{
+  background:#fff;
+  padding:12px;
+  border-radius:8px;
+  line-height:1.55;
+}
+
+.footer{
+  margin-top:12px;
+  font-size:.9rem;
+  color:#333;
+}
+
+.status{
+  padding:8px;
+  border-radius:6px;
+  margin:8px 0;
+  display:none;
+}
+
+.status.success{
+  display:block;
+  background:#e4f4e4;
+  color:#245b24;
+}
+
+.status.error{
+  display:block;
+  background:#f7dddd;
+  color:#7b2222;
+}
+
+.status.info{
+  display:block;
+  background:#eee7dc;
+  color:#543b25;
+}
+
+.loading{
+  text-align:center;
+  padding:25px;
+  color:#666;
+}
+
+.plan-day{
+  position:relative;
+}
+
+.plan-day.complete{
+  background:#355e3b !important;
+  color:#fff !important;
+}
+
+.plan-day.current{
+  border:2px solid var(--accent);
+}
+
+.empty{
+  padding:20px;
+  text-align:center;
+  color:#777;
+}
+
+.quote{
+  border-left:4px solid var(--accent);
+  padding-left:12px;
+  margin:10px 0;
+  font-style:italic;
+}
+
+@media(max-width:900px){
+  .row{
+    flex-direction:column;
+  }
+
+  .col[style*="380px"]{
+    max-width:none !important;
+    flex-basis:auto !important;
+  }
+
+  #bookSelect,
+  #chapterSelect{
+    max-width:120px;
+  }
+}
+
+@media(max-width:600px){
+  .container{
+    padding:10px;
+    margin:10px auto;
+  }
+
+  .header{
+    padding:15px 10px;
+  }
+
+  .reader{
+    max-height:55vh;
+  }
+
+  .verse{
+    gap:6px;
+  }
+
+  .verse-num{
+    width:30px;
+  }
+}
 </style>
 </head>
+
 <body>
+
 <header class="header">
-  <img src="DailyBreadLogo.png" alt="Daily Bread" style="height:56px;display:block;margin:0 auto 8px">
+
+  <img
+    src="DailyBreadLogo.png"
+    alt="Daily Bread"
+    style="height:56px;display:block;margin:0 auto 8px"
+    onerror="this.style.display='none'"
+  >
+
   <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap">
-    <div class="h1">Collaborative Bible Study — Demo</div>
-    <div id="nameDisplay" class="small"></div>
-    <button id="changeNameBtn" class="ghost">Change Name</button>
-  </div>
-  <div class="small">Prototype: KJV reader, verse notes, group sharing, AI summary (simulated)</div>
-</header>
-<div class="container">
-  <div class="panel reading-card">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-      <div>
-        <div style="font-weight:700">Today's Reading</div>
-        <div id="todayLabel" class="small">Day 1 • Genesis 1–3</div>
-      </div>
-      <div class="controls">
-        <button id="openReaderBtn">Read Today's Passage</button>
-        <button id="markCompleteBtn" class="ghost">Mark Reading Complete</button>
-        <button id="myNotesBtn" class="ghost">My Notes</button>
-      </div>
+
+    <div class="h1">
+      Collaborative Bible Study
     </div>
+
+    <div id="nameDisplay" class="small"></div>
+
+    <button id="changeNameBtn" class="ghost">
+      Change Name
+    </button>
+
   </div>
+
+  <div class="small">
+    KJV Bible Reader • Verse Notes • Group Study • Reading Plan
+  </div>
+
+</header>
+
+
+<div class="container">
+
+  <!-- TODAY'S READING -->
+
+  <div class="panel reading-card">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+
+      <div>
+
+        <div style="font-weight:700">
+          Today's Reading
+        </div>
+
+        <div id="todayLabel" class="small">
+          Loading...
+        </div>
+
+      </div>
+
+      <div class="controls">
+
+        <button id="openReaderBtn">
+          Read Today's Passage
+        </button>
+
+        <button id="markCompleteBtn" class="ghost">
+          Mark Reading Complete
+        </button>
+
+        <button id="myNotesBtn" class="ghost">
+          My Notes
+        </button>
+
+      </div>
+
+    </div>
+
+    <div id="mainStatus" class="status"></div>
+
+  </div>
+
+
+  <!-- MAIN CONTENT -->
 
   <div class="row">
+
+    <!-- BIBLE READER -->
+
     <div class="col panel">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div style="font-weight:700">Bible Reader <span id="currRef" class="small"></span></div>
-        <div style="display:flex;gap:8px">
+
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+
+        <div style="font-weight:700">
+          Bible Reader
+          <span id="currRef" class="small"></span>
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+
           <select id="bookSelect"></select>
+
           <select id="chapterSelect"></select>
-          <button id="prevChap">◀</button>
-          <button id="nextChap">▶</button>
-          <button id="backToToday" class="ghost">Today's Reading</button>
+
+          <button id="prevChap">
+            ◀
+          </button>
+
+          <button id="nextChap">
+            ▶
+          </button>
+
+          <button id="backToToday" class="ghost">
+            Today's Reading
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <div class="reader" id="reader">
+        <div class="loading">
+          Loading Bible passage...
         </div>
       </div>
-      <div class="reader" id="reader"></div>
-      <div class="footer small">Tap a verse to add a note. Notes default to private.</div>
+
+      <div class="footer small">
+        Tap a verse to select it and add a note. Notes default to private.
+      </div>
+
     </div>
 
-    <div class="col" style="flex-basis:380px;max-width:380px">
+
+    <!-- NOTES / GROUP -->
+
+    <div
+      class="col"
+      style="flex-basis:380px;max-width:380px"
+    >
+
+      <!-- ADD NOTE -->
+
       <div class="panel">
-        <div style="font-weight:700;margin-bottom:8px">Add Note</div>
-        <div class="form-row">
-          <label class="small">Selected Verse</label>
-          <input id="selectedRef" class="input" readonly>
+
+        <div style="font-weight:700;margin-bottom:8px">
+          Add Note
         </div>
+
         <div class="form-row">
-          <label class="small">Note Type</label>
+
+          <label class="small">
+            Selected Verse
+          </label>
+
+          <input
+            id="selectedRef"
+            class="input"
+            readonly
+            placeholder="Click a verse first"
+          >
+
+        </div>
+
+
+        <div class="form-row">
+
+          <label class="small">
+            Note Type
+          </label>
+
           <select id="noteType" class="input">
-            <option value="Observation">Observation</option>
-            <option value="Question">Question</option>
-            <option value="Application">Application</option>
-            <option value="Prayer">Prayer</option>
-            <option value="CrossReference">Cross-reference</option>
-            <option value="PersonalReflection">Personal Reflection</option>
+
+            <option value="Observation">
+              Observation
+            </option>
+
+            <option value="Question">
+              Question
+            </option>
+
+            <option value="Application">
+              Application
+            </option>
+
+            <option value="Prayer">
+              Prayer
+            </option>
+
+            <option value="CrossReference">
+              Cross-reference
+            </option>
+
+            <option value="PersonalReflection">
+              Personal Reflection
+            </option>
+
           </select>
+
         </div>
+
+
         <div class="form-row">
-          <label class="small">Visibility</label>
+
+          <label class="small">
+            Visibility
+          </label>
+
           <select id="visibility" class="input">
-            <option value="PRIVATE">Private</option>
-            <option value="GROUP">Group</option>
-            <option value="PUBLIC">Public</option>
+
+            <option value="PRIVATE">
+              Private
+            </option>
+
+            <option value="GROUP">
+              Group
+            </option>
+
+            <option value="PUBLIC">
+              Public
+            </option>
+
           </select>
+
         </div>
+
+
         <div class="form-row">
-          <label class="small">Note</label>
-          <textarea id="noteBody" rows="6" class="input"></textarea>
+
+          <label class="small">
+            Note
+          </label>
+
+          <textarea
+            id="noteBody"
+            rows="6"
+            class="input"
+            placeholder="Write what you are learning..."
+          ></textarea>
+
         </div>
+
+
         <div style="display:flex;gap:8px;justify-content:flex-end">
-          <button id="saveNote">Save Note</button>
+
+          <button id="saveNote">
+            Save Note
+          </button>
+
         </div>
+
       </div>
+
 
       <div style="height:12px"></div>
 
+
+      <!-- GROUP STUDY -->
+
       <div class="panel">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div style="font-weight:700">Group Study — Demo Group <span class="badge">17 members</span></div>
-          <button id="regenerateSummary">Regenerate Summary</button>
-        </div>
-        <div style="margin-top:8px">
-          <div class="small">Daily Question</div>
-          <div id="dailyQuestion" class="small" style="margin-bottom:8px;font-style:italic">What does this passage teach us about God's provision?</div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+
+          <div style="font-weight:700">
+
+            Group Study —
+            Demo Group
+
+            <span class="badge">
+              17 members
+            </span>
+
+          </div>
+
+          <button id="regenerateSummary">
+            Regenerate Summary
+          </button>
+
         </div>
 
-        <div style="margin-top:10px" class="note-list" id="groupNotes"></div>
+
+        <div style="margin-top:8px">
+
+          <div class="small">
+            Daily Question
+          </div>
+
+          <div
+            id="dailyQuestion"
+            class="small"
+            style="margin-bottom:8px;font-style:italic"
+          >
+            What does this passage teach us about God's provision?
+          </div>
+
+        </div>
+
+
+        <div
+          style="margin-top:10px"
+          class="note-list"
+          id="groupNotes"
+        ></div>
+
 
         <div style="margin-top:12px">
-          <div style="font-weight:700">AI-Generated Group Summary</div>
-          <div id="aiSummary" class="summary small">(No summary yet)</div>
-          <div style="margin-top:8px;display:flex;gap:8px;justify-content:flex-end">
-            <button id="viewSources">View Source Notes</button>
+
+          <div style="font-weight:700">
+            AI-Generated Group Summary
           </div>
+
+          <div
+            id="aiSummary"
+            class="summary small"
+          >
+            No summary yet. Click "Regenerate Summary" after group notes have been added.
+          </div>
+
+          <div style="margin-top:8px;display:flex;gap:8px;justify-content:flex-end">
+
+            <button id="viewSources">
+              View Source Notes
+            </button>
+
+          </div>
+
         </div>
+
       </div>
+
     </div>
+
   </div>
+
+
+  <!-- READING PLAN -->
 
   <div style="margin-top:18px" class="panel">
-    <div style="font-weight:700">Reading Plan (Demo)</div>
-    <div class="small" id="planProgress">Day 1 of 12 • 0% complete</div>
-    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap" id="planDays"></div>
+
+    <div style="font-weight:700">
+      Reading Plan
+    </div>
+
+    <div
+      class="small"
+      id="planProgress"
+    >
+      Loading progress...
+    </div>
+
+    <div
+      style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap"
+      id="planDays"
+    ></div>
+
   </div>
 
 </div>
 
-<!-- Note modal (verse-centered discussion) -->
+
+<!-- VERSE DISCUSSION MODAL -->
+
 <div id="noteModal" class="note-modal">
+
   <div class="modal-card">
+
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <div style="font-weight:700">Verse Discussion</div>
-      <button id="closeModal">Close</button>
+
+      <div style="font-weight:700">
+        Verse Discussion
+      </div>
+
+      <button id="closeModal">
+        Close
+      </button>
+
     </div>
-    <div id="modalVerseRef" class="small" style="margin-bottom:8px;font-style:italic"></div>
-    <div id="modalVerseText" style="margin-bottom:12px"></div>
-    <div style="font-weight:700;margin-bottom:8px">Group Notes</div>
-    <div id="modalNotes" class="note-list" style="margin-bottom:12px"></div>
+
+
+    <div
+      id="modalVerseRef"
+      class="small"
+      style="margin-bottom:8px;font-style:italic"
+    ></div>
+
+
+    <div
+      id="modalVerseText"
+      style="margin-bottom:12px"
+    ></div>
+
+
+    <div style="font-weight:700;margin-bottom:8px">
+      Group Notes
+    </div>
+
+
+    <div
+      id="modalNotes"
+      class="note-list"
+      style="margin-bottom:12px"
+    ></div>
+
+
     <div style="display:flex;gap:8px;justify-content:flex-end">
-      <button id="modalAddReply">Add Reply</button>
+
+      <button id="modalAddReply">
+        Add Reply
+      </button>
+
     </div>
+
   </div>
+
 </div>
 
-<!-- Name modal -->
+
+<!-- NAME MODAL -->
+
 <div id="nameModal" class="note-modal">
+
   <div class="modal-card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <div style="font-weight:700">Enter Your Name</div>
+
+    <div style="font-weight:700;margin-bottom:12px">
+      Enter Your Name
     </div>
+
     <div class="form-row">
-      <label class="small">Your display name (required)</label>
-      <input id="userNameInput" class="input" placeholder="First and Last or a display name">
+
+      <label class="small">
+        Your display name (required)
+      </label>
+
+      <input
+        id="userNameInput"
+        class="input"
+        placeholder="First and Last or a display name"
+      >
+
     </div>
+
     <div style="display:flex;gap:8px;justify-content:flex-end">
-      <button id="saveName" onclick="saveNameFallback()">Save Name</button>
+
+      <button id="saveName">
+        Save Name
+      </button>
+
     </div>
+
   </div>
+
 </div>
 
-<!-- Small inline script so the Change Name button always opens the modal -->
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  const changeBtn = document.getElementById('changeNameBtn');
-  const nameModal = document.getElementById('nameModal');
-  const userNameInput = document.getElementById('userNameInput');
-  if(changeBtn){
-    changeBtn.addEventListener('click', function(){
-      if(nameModal){ nameModal.style.display = 'flex'; if(userNameInput) userNameInput.focus(); }
-    });
-  }
-});
-</script>
 
-<!-- Inline fallback for Save Name and updateNameDisplay to work even if module fails -->
-<script>
-function updateNameDisplay(){
-  try{
-    const name = localStorage.getItem('cbs_user_name');
-    const el = document.getElementById('nameDisplay');
-    if(el) el.textContent = name ? ('Signed in as: ' + name) : '';
-  }catch(e){console.error('updateNameDisplay fallback error',e)}
-}
+<!-- MY NOTES MODAL -->
 
-function saveNameFallback(){
-  const input = document.getElementById('userNameInput');
-  if(!input) return;
-  const v = input.value.trim();
-  if(!v){ alert('Please enter a display name'); return; }
-  try{
-    localStorage.setItem('cbs_user_name', v);
-    if(!localStorage.getItem('cbs_user_id')) localStorage.setItem('cbs_user_id', 'user-' + Date.now());
-    updateNameDisplay();
-    const nameModal = document.getElementById('nameModal');
-    if(nameModal) nameModal.style.display = 'none';
-  }catch(e){ console.error('saveNameFallback error', e); alert('Unable to save name'); }
-}
+<div id="myNotesModal" class="note-modal">
 
-document.addEventListener('DOMContentLoaded', function(){
-  // Attach fallback to Save Name button
-  const saveBtn = document.getElementById('saveName');
-  if(saveBtn) saveBtn.addEventListener('click', saveNameFallback);
-  // Also update display from storage on load
-  updateNameDisplay();
-});
-</script>
+  <div class="modal-card">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+
+      <div style="font-weight:700">
+        My Notes
+      </div>
+
+      <button id="closeMyNotes">
+        Close
+      </button>
+
+    </div>
+
+    <div
+      id="myNotesList"
+      class="note-list"
+    ></div>
+
+  </div>
+
+</div>
+
 
 <script type="module">
-// Collaborative Bible Study — demo implementation
-// Key points:
-// - Uses bible-api.com for KJV passages (replaceable through BibleService)
-// - Saves notes to Firestore collection "studyNotes" (fields documented in README)
-// - Enforces visibility client-side in demo; FIRESTORE RULES provided in repo to enforce server-side
-// - Requires each user to enter a display name before creating notes (stored in localStorage for demo)
 
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+/*
+===========================================================
+DAILY BREAD — COLLABORATIVE BIBLE STUDY
+===========================================================
+
+This is a complete front-end implementation.
+
+Bible:
+  KJV through bible-api.com
+
+Database:
+  Firebase Firestore
+
+User:
+  Demo display-name system using localStorage
+
+AI:
+  Demo local summarizer.
+  Replace generateAISummary() with your secure backend
+  endpoint when you are ready.
+
+IMPORTANT:
+Never place a private OpenAI/API key directly in this file.
+===========================================================
+*/
+
+
 import {
-  getFirestore, collection, addDoc, getDocs, query, where, orderBy, serverTimestamp
-} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 
-// Reuse existing Firebase config from project
+
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  where,
+  orderBy,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+
+/* =========================================================
+   FIREBASE
+========================================================= */
+
 const firebaseConfig = {
-  apiKey: "AIzaSyA3g--TT89iLyEQ5lvwI7mBcIygrls7iCQ",
-  authDomain: "daily-bread-973e9.firebaseapp.com",
-  projectId: "daily-bread-973e9"
+
+  apiKey:
+    "AIzaSyA3g--TT89iLyEQ5lvwI7mBcIygrls7iCQ",
+
+  authDomain:
+    "daily-bread-973e9.firebaseapp.com",
+
+  projectId:
+    "daily-bread-973e9"
+
 };
+
+
 const app = initializeApp(firebaseConfig);
+
 const db = getFirestore(app);
 
-/* ------------------------- Demo reading plan (12 days) ------------------------- */
+
+/* =========================================================
+   DOM HELPER
+========================================================= */
+
+const $ = id =>
+  document.getElementById(id);
+
+
+/* =========================================================
+   READING PLAN
+========================================================= */
+
 const demoPlan = {
-  id: 'demo-plan-1',
-  name: 'Demo 12-Day Plan',
-  startDate: (new Date()).toISOString().split('T')[0],
+
+  id:
+    "demo-plan-1",
+
+  name:
+    "John Reading Plan",
+
   days: [
-    {day:1, ref:'John 6:22-40'},
-    {day:2, ref:'John 6:41-59'},
-    {day:3, ref:'John 7:1-13'},
-    {day:4, ref:'John 7:14-36'},
-    {day:5, ref:'John 7:37-52'},
-    {day:6, ref:'John 8:1-11'},
-    {day:7, ref:'John 8:12-30'},
-    {day:8, ref:'John 8:31-47'},
-    {day:9, ref:'John 8:48-59'},
-    {day:10, ref:'John 9'},
-    {day:11, ref:'John 10:1-18'},
-    {day:12, ref:'John 10:19-42'}
+
+    {
+      day:1,
+      ref:"John 6:22-40"
+    },
+
+    {
+      day:2,
+      ref:"John 6:41-59"
+    },
+
+    {
+      day:3,
+      ref:"John 7:1-13"
+    },
+
+    {
+      day:4,
+      ref:"John 7:14-36"
+    },
+
+    {
+      day:5,
+      ref:"John 7:37-52"
+    },
+
+    {
+      day:6,
+      ref:"John 8:1-11"
+    },
+
+    {
+      day:7,
+      ref:"John 8:12-30"
+    },
+
+    {
+      day:8,
+      ref:"John 8:31-47"
+    },
+
+    {
+      day:9,
+      ref:"John 8:48-59"
+    },
+
+    {
+      day:10,
+      ref:"John 9"
+    },
+
+    {
+      day:11,
+      ref:"John 10:1-18"
+    },
+
+    {
+      day:12,
+      ref:"John 10:19-42"
+    }
+
   ]
+
 };
-let currentDayIndex = 0; // 0-based for demo
 
-/* ------------------------- Bible service ------------------------- */
-class BibleService {
-  constructor(translation='kjv'){
-    this.translation = translation;
+
+let currentDayIndex = 0;
+
+
+/* =========================================================
+   USER
+========================================================= */
+
+let currentUser = {
+
+  id:null,
+
+  name:null
+
+};
+
+
+function loadUser(){
+
+  const name =
+    localStorage.getItem("cbs_user_name");
+
+  const id =
+    localStorage.getItem("cbs_user_id");
+
+  if(name && id){
+
+    currentUser = {
+      id,
+      name
+    };
+
   }
-  // fetch passage range (e.g. "John 6:22-40")
-  async fetchPassage(ref){
-    const url = 'https://bible-api.com/' + encodeURIComponent(ref) + '?translation=' + encodeURIComponent(this.translation);
-    const res = await fetch(url);
-    if(!res.ok) throw new Error('Bible API error');
-    const data = await res.json();
-    // bible-api returns .verses array and .text
-    return data;
+
+}
+
+
+function saveUser(){
+
+  localStorage.setItem(
+    "cbs_user_name",
+    currentUser.name
+  );
+
+  localStorage.setItem(
+    "cbs_user_id",
+    currentUser.id
+  );
+
+}
+
+
+function updateNameDisplay(){
+
+  const el =
+    $("nameDisplay");
+
+  if(!el) return;
+
+  if(currentUser.name){
+
+    el.textContent =
+      "Signed in as: " +
+      currentUser.name;
+
+  }else{
+
+    el.textContent =
+      "";
+
   }
+
 }
 
-const bible = new BibleService('kjv');
-
-/* ------------------------- Name / small auth shim for demo ------------------------- */
-// Require each user to enter their display name. In production, use Firebase Auth.
-let currentUser = { id: null, name: null };
-
-function loadUserFromStorage(){
-  const name = localStorage.getItem('cbs_user_name');
-  const id = localStorage.getItem('cbs_user_id');
-  if(name && id){ currentUser = { id, name }; }
-}
-function saveUserToStorage(){
-  localStorage.setItem('cbs_user_name', currentUser.name);
-  localStorage.setItem('cbs_user_id', currentUser.id);
-}
 
 function showNameModal(){
-  $('nameModal').style.display = 'flex';
-  $('userNameInput').focus();
+
+  $("nameModal").style.display =
+    "flex";
+
+  setTimeout(() => {
+
+    $("userNameInput").focus();
+
+  },100);
+
 }
+
+
 function hideNameModal(){
-  $('nameModal').style.display = 'none';
+
+  $("nameModal").style.display =
+    "none";
+
 }
+
 
 function ensureUserName(){
-  if(!currentUser.name){ showNameModal(); return false; }
+
+  if(!currentUser.name){
+
+    showNameModal();
+
+    return false;
+
+  }
+
   return true;
+
 }
 
-/* ------------------------- State ------------------------- */
+
+/* =========================================================
+   APPLICATION STATE
+========================================================= */
+
 const state = {
-  currentBook: null,
-  currentChapter: null,
-  currentRef: null,
-  selectedVerse: null,
-  groupId: 'demo-group-1'
+
+  currentRef:null,
+
+  selectedVerse:null,
+
+  selectedVerseText:null,
+
+  groupId:
+    "demo-group-1",
+
+  completedDays:[],
+
+  cachedPassage:null
+
 };
 
-/* ------------------------- DOM helpers ------------------------- */
-const $ = id => document.getElementById(id);
 
-/* ------------------------- Init UI ------------------------- */
-function renderPlan(){
-  $('todayLabel').textContent = `Day ${demoPlan.days[currentDayIndex].day} • ${demoPlan.days[currentDayIndex].ref}`;
-  const container = $('planDays');
-  container.innerHTML = demoPlan.days.map((d,i)=>`
-    <button class="ghost" data-day="${i}" style="padding:8px;border-radius:6px">Day ${d.day}: ${d.ref}</button>
-  `).join('');
-  container.querySelectorAll('button[data-day]').forEach(b=>b.addEventListener('click',()=>{
-    currentDayIndex = Number(b.dataset.day);
-    openRef(demoPlan.days[currentDayIndex].ref);
-  }));
-  updateProgress();
-}
-function updateProgress(){
-  const total = demoPlan.days.length;
-  const done = 0; // demo: integrate ReadingProgress in later phase
-  $('planProgress').textContent = `Day ${demoPlan.days[currentDayIndex].day} of ${total} • ${Math.round((done/total)*100)}% complete`;
-}
+/* =========================================================
+   BIBLE SERVICE
+========================================================= */
 
-/* ------------------------- Bible navigation ------------------------- */
-async function openRef(ref){
-  try{
-    $('currRef').textContent = ref;
-    state.currentRef = ref;
-    // fetch from BibleService
-    const data = await bible.fetchPassage(ref);
-    showPassage(data);
-    // attempt to set book/chapter selects based on returned data
-    if(data.reference){
-      // data.reference like "John 6:22-40"
-    }
-  }catch(err){
-    console.error(err);
-    $('reader').innerHTML = '<div class="small">Unable to load passage.</div>';
+class BibleService{
+
+  constructor(
+    translation="kjv"
+  ){
+
+    this.translation =
+      translation;
+
   }
+
+
+  async fetchPassage(ref){
+
+    const url =
+      "https://bible-api.com/" +
+      encodeURIComponent(ref) +
+      "?translation=" +
+      encodeURIComponent(
+        this.translation
+      );
+
+
+    const response =
+      await fetch(url);
+
+
+    if(!response.ok){
+
+      throw new Error(
+        "Unable to retrieve Bible passage."
+      );
+
+    }
+
+
+    return await response.json();
+
+  }
+
 }
 
-/* ------------------------- rest of code unchanged ------------------------- */
 
-// load initial user from localStorage; if not present, force name entry
-loadUserFromStorage();
-updateNameDisplay();
-if(!currentUser.name) showNameModal();
+const bible =
+  new BibleService("kjv");
 
-// load initial UI
-renderPlan();
-openRef(demoPlan.days[currentDayIndex].ref);
-loadGroupNotes();
+
+/* =========================================================
+   BOOK DATA
+========================================================= */
+
+const books = [
+
+  ["Genesis",50],
+  ["Exodus",40],
+  ["Leviticus",27],
+  ["Numbers",36],
+  ["Deuteronomy",34],
+  ["Joshua",24],
+  ["Judges",21],
+  ["Ruth",4],
+  ["1 Samuel",31],
+  ["2 Samuel",24],
+  ["1 Kings",22],
+  ["2 Kings",25],
+  ["1 Chronicles",29],
+  ["2 Chronicles",36],
+  ["Ezra",10],
+  ["Nehemiah",13],
+  ["Esther",10],
+  ["Job",42],
+  ["Psalms",150],
+  ["Proverbs",31],
+  ["Ecclesiastes",12],
+  ["Song of Solomon",8],
+  ["Isaiah",66],
+  ["Jeremiah",52],
+  ["Lamentations",5],
+  ["Ezekiel",48],
+  ["Daniel",12],
+  ["Hosea",14],
+  ["Joel",3],
+  ["Amos",9],
+  ["Obadiah",1],
+  ["Jonah",4],
+  ["Micah",7],
+  ["Nahum",3],
+  ["Habakkuk",3],
+  ["Zephaniah",3],
+  ["Haggai",2],
+  ["Zechariah",14],
+  ["Malachi",4],
+
+  ["Matthew",28],
+  ["Mark",16],
+  ["Luke",24],
+  ["John",21],
+  ["Acts",28],
+  ["Romans",16],
+  ["1 Corinthians",16],
+  ["2 Corinthians",13],
+  ["Galatians",6],
+  ["Ephesians",6],
+  ["Philippians",4],
+  ["Colossians",4],
+  ["1 Thessalonians",5],
+  ["2 Thessalonians",3],
+  ["1 Timothy",6],
+  ["2 Timothy",4],
+  ["Titus",3],
+  ["Philemon",1],
+  ["Hebrews",13],
+  ["James",5],
+  ["1 Peter",5],
+  ["2 Peter",3],
+  ["1 John",5],
+  ["2 John",1],
+  ["3 John",1],
+  ["Jude",1],
+  ["Revelation",22]
+
+];
+
+
+function populateBookSelect(){
+
+  const select =
+    $("bookSelect");
+
+  select.innerHTML =
+    books.map(
+      book =>
+        `<option value="${book[0]}">${book[0]}</option>`
+    ).join("");
+
+}
+
+
+function populateChapterSelect(
+  bookName,
+  selectedChapter=null
+){
+
+  const select =
+    $("chapterSelect");
+
+  const book =
+    books.find(
+      b => b[0] === bookName
+    );
+
+  if(!book) return;
+
+
+  const total =
+    book[1];
+
+
+  select.innerHTML =
+    Array.from(
+      {length:total},
+      (_,i) =>
+        `<option value="${i+1}">Chapter ${i+1}</option>`
+    ).join("");
+
+
+  if(selectedChapter){
+
+    select.value =
+      String(selectedChapter);
+
+  }
+
+}
+
+
+/* =========================================================
+   PARSE REFERENCE
+========================================================= */
+
+function parseReference(ref){
+
+  const match =
+    ref.match(
+      /^(.+?)\s+(\d+)(?::(\d+)(?:-(\d+))?)?$/
+    );
+
+
+  if(!match){
+
+    return null;
+
+  }
+
+
+  return {
+
+    book:match[1],
+
+    chapter:Number(match[2]),
+
+    startVerse:
+      match[3]
+        ? Number(match[3])
+        : null,
+
+    endVerse:
+      match[4]
+        ? Number(match[4])
+        : null
+
+  };
+
+}
+
+
+/* =========================================================
+   OPEN PASSAGE
+========================================================= */
+
+async function openRef(ref){
+
+  $("currRef").textContent =
+    " — " + ref;
+
+  $("reader").innerHTML =
+    `<div class="loading">Loading ${ref}...</div>`;
+
+
+  state.currentRef =
+    ref;
+
+  state.selectedVerse =
+    null;
+
+  state.selectedVerseText =
+    null;
+
+  $("selectedRef").value =
+    "";
+
+
+  const parsed =
+    parseReference(ref);
+
+
+  if(parsed){
+
+    $("bookSelect").value =
+      parsed.book;
+
+    populateChapterSelect(
+      parsed.book,
+      parsed.chapter
+    );
+
+  }
+
+
+  try{
+
+    const data =
+      await bible.fetchPassage(ref);
+
+
+    state.cachedPassage =
+      data;
+
+
+    showPassage(data);
+
+
+    updateDailyQuestion();
+
+  }catch(error){
+
+    console.error(error);
+
+
+    $("reader").innerHTML = `
+
+      <div class="status error" style="display:block">
+
+        Unable to load this passage.
+
+        <br><br>
+
+        Please check your internet connection
+        or try again.
+
+      </div>
+
+    `;
+
+  }
+
+}
+
+
+/* =========================================================
+   SHOW PASSAGE
+========================================================= */
+
+function showPassage(data){
+
+  const verses =
+    data.verses || [];
+
+
+  if(!verses.length){
+
+    $("reader").innerHTML =
+      `<div class="empty">No verses were returned.</div>`;
+
+    return;
+
+  }
+
+
+  $("reader").innerHTML =
+    verses.map(
+      verse => `
+
+        <div
+          class="verse"
+          data-verse="${verse.verse}"
+        >
+
+          <div class="verse-num">
+            ${verse.verse}
+          </div>
+
+          <div class="verse-text">
+            ${escapeHtml(
+              verse.text.trim()
+            )}
+          </div>
+
+          <div class="verse-actions">
+
+            <button
+              class="ghost add-note-verse"
+              data-verse="${verse.verse}"
+              title="Add note"
+            >
+              +
+            </button>
+
+          </div>
+
+        </div>
+
+      `
+    ).join("");
+
+
+  document
+    .querySelectorAll(".verse")
+    .forEach(el => {
+
+      el.addEventListener(
+        "click",
+        event => {
+
+          if(
+            event.target.closest(
+              ".add-note-verse"
+            )
+          ){
+
+            return;
+
+          }
+
+
+          selectVerse(el);
+
+        }
+      );
+
+    });
+
+
+  document
+    .querySelectorAll(".add-note-verse")
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        event => {
+
+          event.stopPropagation();
+
+          const verseNumber =
+            Number(
+              button.dataset.verse
+            );
+
+
+          const verse =
+            verses.find(
+              v =>
+                Number(v.verse) ===
+                verseNumber
+            );
+
+
+          if(verse){
+
+            selectVerse(
+              document.querySelector(
+                `.verse[data-verse="${verseNumber}"]`
+              )
+            );
+
+            $("noteBody").focus();
+
+          }
+
+        }
+      );
+
+    });
+
+}
+
+
+/* =========================================================
+   SELECT VERSE
+========================================================= */
+
+function selectVerse(element){
+
+  document
+    .querySelectorAll(".verse.selected")
+    .forEach(
+      el =>
+        el.classList.remove("selected")
+    );
+
+
+  element.classList.add("selected");
+
+
+  const verseNumber =
+    Number(
+      element.dataset.verse
+    );
+
+
+  const text =
+    element.querySelector(
+      ".verse-text"
+    ).textContent.trim();
+
+
+  state.selectedVerse =
+    verseNumber;
+
+  state.selectedVerseText =
+    text;
+
+
+  const ref =
+    buildVerseReference(
+      state.currentRef,
+      verseNumber
+    );
+
+
+  $("selectedRef").value =
+    ref;
+
+
+  openVerseDiscussion(
+    ref,
+    text
+  );
+
+}
+
+
+/* =========================================================
+   BUILD VERSE REFERENCE
+========================================================= */
+
+function buildVerseReference(
+  passageRef,
+  verseNumber
+){
+
+  const parsed =
+    parseReference(passageRef);
+
+
+  if(!parsed){
+
+    return passageRef +
+      ":" +
+      verseNumber;
+
+  }
+
+
+  return `${parsed.book} ${parsed.chapter}:${verseNumber}`;
+
+}
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+function openSelectedChapter(){
+
+  const book =
+    $("bookSelect").value;
+
+  const chapter =
+    Number(
+      $("chapterSelect").value
+    );
+
+
+  openRef(
+    `${book} ${chapter}`
+  );
+
+}
+
+
+function previousChapter(){
+
+  const book =
+    $("bookSelect").value;
+
+  const chapter =
+    Number(
+      $("chapterSelect").value
+    );
+
+
+  const index =
+    books.findIndex(
+      b => b[0] === book
+    );
+
+
+  if(chapter > 1){
+
+    populateChapterSelect(
+      book,
+      chapter - 1
+    );
+
+    openRef(
+      `${book} ${chapter - 1}`
+    );
+
+    return;
+
+  }
+
+
+  if(index > 0){
+
+    const previousBook =
+      books[index - 1];
+
+    const previousChapter =
+      previousBook[1];
+
+
+    $("bookSelect").value =
+      previousBook[0];
+
+    populateChapterSelect(
+      previousBook[0],
+      previousChapter
+    );
+
+
+    openRef(
+      `${previousBook[0]} ${previousChapter}`
+    );
+
+  }
+
+}
+
+
+function nextChapter(){
+
+  const book =
+    $("bookSelect").value;
+
+  const chapter =
+    Number(
+      $("chapterSelect").value
+    );
+
+
+  const index =
+    books.findIndex(
+      b => b[0] === book
+    );
+
+
+  const total =
+    books[index][1];
+
+
+  if(chapter < total){
+
+    populateChapterSelect(
+      book,
+      chapter + 1
+    );
+
+
+    openRef(
+      `${book} ${chapter + 1}`
+    );
+
+    return;
+
+  }
+
+
+  if(index < books.length - 1){
+
+    const nextBook =
+      books[index + 1];
+
+
+    $("bookSelect").value =
+      nextBook[0];
+
+
+    populateChapterSelect(
+      nextBook[0],
+      1
+    );
+
+
+    openRef(
+      `${nextBook[0]} 1`
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   READING PLAN UI
+========================================================= */
+
+function renderPlan(){
+
+  const day =
+    demoPlan.days[
+      currentDayIndex
+    ];
+
+
+  $("todayLabel").textContent =
+    `Day ${day.day} • ${day.ref}`;
+
+
+  const container =
+    $("planDays");
+
+
+  container.innerHTML =
+    demoPlan.days.map(
+      (d,i) => {
+
+        const complete =
+          state.completedDays.includes(
+            i
+          );
+
+
+        const current =
+          i === currentDayIndex;
+
+
+        return `
+
+          <button
+
+            class="ghost plan-day
+              ${complete ? "complete" : ""}
+              ${current ? "current" : ""}
+            "
+
+            data-day="${i}"
+
+          >
+
+            Day ${d.day}: ${d.ref}
+
+          </button>
+
+        `;
+
+      }
+    ).join("");
+
+
+  container
+    .querySelectorAll(
+      "[data-day]"
+    )
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          currentDayIndex =
+            Number(
+              button.dataset.day
+            );
+
+
+          renderPlan();
+
+
+          openRef(
+            demoPlan.days[
+              currentDayIndex
+            ].ref
+          );
+
+        }
+      );
+
+    });
+
+
+  updateProgress();
+
+}
+
+
+function updateProgress(){
+
+  const total =
+    demoPlan.days.length;
+
+
+  const done =
+    state.completedDays.length;
+
+
+  const percent =
+    Math.round(
+      (done / total) * 100
+    );
+
+
+  $("planProgress").textContent =
+    `Day ${demoPlan.days[currentDayIndex].day} of ${total} • ${percent}% complete`;
+
+}
+
+
+/* =========================================================
+   LOCAL READING PROGRESS
+========================================================= */
+
+function loadReadingProgress(){
+
+  try{
+
+    const stored =
+      localStorage.getItem(
+        "daily_bread_completed_days"
+      );
+
+
+    if(stored){
+
+      state.completedDays =
+        JSON.parse(stored);
+
+    }
+
+  }catch(error){
+
+    console.error(error);
+
+    state.completedDays = [];
+
+  }
+
+}
+
+
+function saveReadingProgress(){
+
+  localStorage.setItem(
+    "daily_bread_completed_days",
+    JSON.stringify(
+      state.completedDays
+    )
+  );
+
+}
+
+
+function markReadingComplete(){
+
+  if(
+    !state.completedDays.includes(
+      currentDayIndex
+    )
+  ){
+
+    state.completedDays.push(
+      currentDayIndex
+    );
+
+    saveReadingProgress();
+
+  }
+
+
+  renderPlan();
+
+
+  showStatus(
+    "Reading marked complete.",
+    "success"
+  );
+
+
+  if(
+    currentDayIndex <
+    demoPlan.days.length - 1
+  ){
+
+    setTimeout(() => {
+
+      currentDayIndex++;
+
+      renderPlan();
+
+      openRef(
+        demoPlan.days[
+          currentDayIndex
+        ].ref
+      );
+
+    },700);
+
+  }
+
+}
+
+
+/* =========================================================
+   FIRESTORE NOTES
+========================================================= */
+
+async function saveNote(){
+
+  if(!ensureUserName()){
+
+    return;
+
+  }
+
+
+  const selectedRef =
+    $("selectedRef").value.trim();
+
+
+  const body =
+    $("noteBody").value.trim();
+
+
+  const noteType =
+    $("noteType").value;
+
+
+  const visibility =
+    $("visibility").value;
+
+
+  if(!selectedRef){
+
+    showStatus(
+      "Please select a verse first.",
+      "error"
+    );
+
+    return;
+
+  }
+
+
+  if(!body){
+
+    showStatus(
+      "Please write a note before saving.",
+      "error"
+    );
+
+    return;
+
+  }
+
+
+  const saveButton =
+    $("saveNote");
+
+
+  saveButton.disabled =
+    true;
+
+
+  saveButton.textContent =
+    "Saving...";
+
+
+  const note = {
+
+    userId:
+      currentUser.id,
+
+    userName:
+      currentUser.name,
+
+    groupId:
+      state.groupId,
+
+    reference:
+      selectedRef,
+
+    passageReference:
+      state.currentRef,
+
+    verseText:
+      state.selectedVerseText || "",
+
+    type:
+      noteType,
+
+    visibility:
+      visibility,
+
+    body:
+      body,
+
+    createdAt:
+      serverTimestamp()
+
+  };
+
+
+  try{
+
+    await addDoc(
+      collection(
+        db,
+        "studyNotes"
+      ),
+      note
+    );
+
+
+    $("noteBody").value =
+      "";
+
+
+    showStatus(
+      "Note saved successfully.",
+      "success"
+    );
+
+
+    await loadGroupNotes();
+
+
+  }catch(error){
+
+    console.error(error);
+
+
+    /*
+      If Firestore rules aren't configured yet,
+      keep a local copy so the demo still works.
+    */
+
+    saveLocalNote(note);
+
+
+    showStatus(
+      "Firebase could not save the note, so it was saved locally for this demo.",
+      "info"
+    );
+
+
+    await loadGroupNotes();
+
+  }finally{
+
+    saveButton.disabled =
+      false;
+
+    saveButton.textContent =
+      "Save Note";
+
+  }
+
+}
+
+
+/* =========================================================
+   LOCAL NOTE FALLBACK
+========================================================= */
+
+function saveLocalNote(note){
+
+  const notes =
+    getLocalNotes();
+
+
+  notes.push({
+
+    ...note,
+
+    createdAt:
+      new Date().toISOString()
+
+  });
+
+
+  localStorage.setItem(
+    "daily_bread_notes",
+    JSON.stringify(notes)
+  );
+
+}
+
+
+function getLocalNotes(){
+
+  try{
+
+    return JSON.parse(
+      localStorage.getItem(
+        "daily_bread_notes"
+      ) || "[]"
+    );
+
+  }catch{
+
+    return [];
+
+  }
+
+}
+
+
+/* =========================================================
+   LOAD GROUP NOTES
+========================================================= */
+
+async function loadGroupNotes(){
+
+  let notes = [];
+
+
+  try{
+
+    const q =
+      query(
+
+        collection(
+          db,
+          "studyNotes"
+        ),
+
+        where(
+          "groupId",
+          "==",
+          state.groupId
+        ),
+
+        orderBy(
+          "createdAt",
+          "desc"
+        )
+
+      );
+
+
+    const snapshot =
+      await getDocs(q);
+
+
+    snapshot.forEach(
+      document => {
+
+        const data =
+          document.data();
+
+
+        notes.push({
+
+          id:
+            document.id,
+
+          ...data
+
+        });
+
+      }
+    );
+
+
+  }catch(error){
+
+    console.warn(
+      "Firestore notes unavailable:",
+      error
+    );
+
+  }
+
+
+  /*
+    Add local notes too.
+  */
+
+  const localNotes =
+    getLocalNotes();
+
+
+  notes = [
+    ...notes,
+    ...localNotes
+  ];
+
+
+  /*
+    Only display group/public notes
+    in the group section.
+  */
+
+  const groupNotes =
+    notes.filter(
+      note =>
+        note.visibility === "GROUP" ||
+        note.visibility === "PUBLIC"
+    );
+
+
+  renderGroupNotes(
+    groupNotes
+  );
+
+
+  return notes;
+
+}
+
+
+/* =========================================================
+   RENDER GROUP NOTES
+========================================================= */
+
+function renderGroupNotes(notes){
+
+  const container =
+    $("groupNotes");
+
+
+  if(!notes.length){
+
+    container.innerHTML = `
+
+      <div class="empty">
+        No group notes have been added yet.
+        Be the first to share something from today's reading.
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+    notes.slice(0,30)
+      .map(
+        note => `
+
+          <div class="note-card">
+
+            <div class="note-meta">
+
+              <strong>
+                ${escapeHtml(
+                  note.userName ||
+                  "Anonymous"
+                )}
+              </strong>
+
+              •
+
+              ${escapeHtml(
+                note.type ||
+                "Note"
+              )}
+
+              •
+
+              ${escapeHtml(
+                note.reference ||
+                ""
+              )}
+
+            </div>
+
+
+            <div style="margin-bottom:6px">
+
+              ${escapeHtml(
+                note.body ||
+                ""
+              )}
+
+            </div>
+
+
+            ${
+              note.verseText
+              ?
+              `
+              <div class="quote small">
+
+                ${escapeHtml(
+                  note.verseText
+                )}
+
+              </div>
+              `
+              :
+              ""
+            }
+
+          </div>
+
+        `
+      )
+      .join("");
+
+}
+
+
+/* =========================================================
+   MY NOTES
+========================================================= */
+
+async function showMyNotes(){
+
+  if(!ensureUserName()){
+
+    return;
+
+  }
+
+
+  let notes = [];
+
+
+  try{
+
+    const q =
+      query(
+
+        collection(
+          db,
+          "studyNotes"
+        ),
+
+        where(
+          "userId",
+          "==",
+          currentUser.id
+        )
+
+      );
+
+
+    const snapshot =
+      await getDocs(q);
+
+
+    snapshot.forEach(
+      doc => {
+
+        notes.push({
+
+          id:doc.id,
+
+          ...doc.data()
+
+        });
+
+      }
+    );
+
+  }catch(error){
+
+    console.warn(error);
+
+  }
+
+
+  const localNotes =
+    getLocalNotes().filter(
+      note =>
+        note.userId ===
+        currentUser.id
+    );
+
+
+  notes = [
+    ...notes,
+    ...localNotes
+  ];
+
+
+  const container =
+    $("myNotesList");
+
+
+  if(!notes.length){
+
+    container.innerHTML = `
+
+      <div class="empty">
+        You have not created any notes yet.
+      </div>
+
+    `;
+
+  }else{
+
+    container.innerHTML =
+      notes.map(
+        note => `
+
+          <div class="note-card">
+
+            <div class="note-meta">
+
+              ${escapeHtml(
+                note.reference ||
+                ""
+              )}
+
+              •
+
+              ${escapeHtml(
+                note.type ||
+                ""
+              )}
+
+              •
+
+              ${escapeHtml(
+                note.visibility ||
+                "PRIVATE"
+              )}
+
+            </div>
+
+            <div>
+
+              ${escapeHtml(
+                note.body ||
+                ""
+              )}
+
+            </div>
+
+          </div>
+
+        `
+      ).join("");
+
+  }
+
+
+  $("myNotesModal").style.display =
+    "flex";
+
+}
+
+
+/* =========================================================
+   VERSE DISCUSSION
+========================================================= */
+
+async function openVerseDiscussion(
+  ref,
+  text
+){
+
+  $("modalVerseRef").textContent =
+    ref;
+
+
+  $("modalVerseText").innerHTML =
+    `<div class="quote">${escapeHtml(text)}</div>`;
+
+
+  $("modalNotes").innerHTML =
+    `<div class="loading">Loading discussion...</div>`;
+
+
+  $("noteModal").style.display =
+    "flex";
+
+
+  let notes =
+    await loadAllNotes();
+
+
+  notes =
+    notes.filter(
+      note =>
+        note.reference ===
+        ref &&
+        (
+          note.visibility === "GROUP" ||
+          note.visibility === "PUBLIC"
+        )
+    );
+
+
+  if(!notes.length){
+
+    $("modalNotes").innerHTML = `
+
+      <div class="empty">
+        No group notes for this verse yet.
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  $("modalNotes").innerHTML =
+    notes.map(
+      note => `
+
+        <div class="note-card">
+
+          <div class="note-meta">
+
+            <strong>
+              ${escapeHtml(
+                note.userName ||
+                "Anonymous"
+              )}
+            </strong>
+
+            •
+
+            ${escapeHtml(
+              note.type ||
+              "Note"
+            )}
+
+          </div>
+
+          <div>
+
+            ${escapeHtml(
+              note.body ||
+              ""
+            )}
+
+          </div>
+
+        </div>
+
+      `
+    ).join("");
+
+}
+
+
+async function loadAllNotes(){
+
+  let notes = [];
+
+
+  try{
+
+    const snapshot =
+      await getDocs(
+        collection(
+          db,
+          "studyNotes"
+        )
+      );
+
+
+    snapshot.forEach(
+      doc => {
+
+        notes.push({
+
+          id:doc.id,
+
+          ...doc.data()
+
+        });
+
+      }
+    );
+
+  }catch(error){
+
+    console.warn(error);
+
+  }
+
+
+  notes = [
+    ...notes,
+    ...getLocalNotes()
+  ];
+
+
+  return notes;
+
+}
+
+
+/* =========================================================
+   DAILY QUESTION
+========================================================= */
+
+function updateDailyQuestion(){
+
+  const questions = [
+
+    "What does this passage teach us about God's provision?",
+
+    "What does this passage reveal about who Jesus is?",
+
+    "What command or principle from this passage should we obey?",
+
+    "What does this passage teach us about faith?",
+
+    "What sin, attitude, or temptation does this passage warn us about?",
+
+    "How should this passage change the way we live?",
+
+    "What does this passage reveal about God's character?",
+
+    "What is one truth from this passage that you need to remember today?"
+
+  ];
+
+
+  const index =
+    currentDayIndex %
+    questions.length;
+
+
+  $("dailyQuestion").textContent =
+    questions[index];
+
+}
+
+
+/* =========================================================
+   AI SUMMARY
+========================================================= */
+
+async function generateAISummary(){
+
+  const button =
+    $("regenerateSummary");
+
+
+  button.disabled =
+    true;
+
+
+  button.textContent =
+    "Generating...";
+
+
+  $("aiSummary").innerHTML =
+    `<div class="loading">Analyzing group notes...</div>`;
+
+
+  try{
+
+    const notes =
+      await loadAllNotes();
+
+
+    const groupNotes =
+      notes.filter(
+        note =>
+          (
+            note.visibility === "GROUP" ||
+            note.visibility === "PUBLIC"
+          ) &&
+          note.passageReference ===
+          state.currentRef
+      );
+
+
+    if(!groupNotes.length){
+
+      $("aiSummary").textContent =
+        "There are not enough group notes yet to generate a meaningful summary. Add a few observations, questions, applications, or prayers first.";
+
+      return;
+
+    }
+
+
+    /*
+      DEMO SUMMARY
+
+      This deliberately does not call an external AI service.
+
+      When your backend is ready, replace this section with:
+
+      const response = await fetch("/api/summarize", {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+          passage:state.currentRef,
+          notes:groupNotes
+        })
+      });
+
+      const result = await response.json();
+
+      $("aiSummary").textContent = result.summary;
+    */
+
+
+    const observations =
+      groupNotes.filter(
+        n =>
+          n.type ===
+          "Observation"
+      );
+
+
+    const applications =
+      groupNotes.filter(
+        n =>
+          n.type ===
+          "Application"
+      );
+
+
+    const questions =
+      groupNotes.filter(
+        n =>
+          n.type ===
+          "Question"
+      );
+
+
+    const prayers =
+      groupNotes.filter(
+        n =>
+          n.type ===
+          "Prayer"
+      );
+
+
+    const themes =
+      extractThemes(
+        groupNotes
+      );
+
+
+    let html = `
+
+      <strong>
+        Group study summary for ${escapeHtml(state.currentRef)}
+      </strong>
+
+      <br><br>
+
+      The group has contributed
+      <strong>${groupNotes.length}</strong>
+      shared note${groupNotes.length === 1 ? "" : "s"}
+      from this passage.
+
+    `;
+
+
+    if(themes.length){
+
+      html += `
+
+        <br><br>
+
+        <strong>Main themes:</strong>
+
+        ${themes
+          .map(
+            theme =>
+              `<span class="badge" style="margin:3px">${escapeHtml(theme)}</span>`
+          )
+          .join("")}
+
+      `;
+
+    }
+
+
+    if(observations.length){
+
+      html += `
+
+        <br><br>
+
+        <strong>Observations:</strong>
+
+        The group is primarily noticing
+        ${observations.length}
+        observation${observations.length === 1 ? "" : "s"}
+        about the passage.
+
+      `;
+
+    }
+
+
+    if(applications.length){
+
+      html += `
+
+        <br><br>
+
+        <strong>Application:</strong>
+
+        ${applications.length}
+        group member${applications.length === 1 ? "" : "s"}
+        have shared practical applications
+        from the passage.
+
+      `;
+
+    }
+
+
+    if(questions.length){
+
+      html += `
+
+        <br><br>
+
+        <strong>Questions:</strong>
+
+        The group has raised
+        ${questions.length}
+        question${questions.length === 1 ? "" : "s"}
+        for further study.
+
+      `;
+
+    }
+
+
+    if(prayers.length){
+
+      html += `
+
+        <br><br>
+
+        <strong>Prayer:</strong>
+
+        The group has also shared
+        ${prayers.length}
+        prayer-related reflection${prayers.length === 1 ? "" : "s"}.
+
+      `;
+
+    }
+
+
+    html += `
+
+      <br><br>
+
+      <strong>Study direction:</strong>
+
+      Read the passage again, compare the group observations
+      with the actual text, and consider how the truths of the
+      passage should affect faith, obedience, and daily life.
+
+    `;
+
+
+    $("aiSummary").innerHTML =
+      html;
+
+
+  }catch(error){
+
+    console.error(error);
+
+
+    $("aiSummary").textContent =
+      "The summary could not be generated right now.";
+
+  }finally{
+
+    button.disabled =
+      false;
+
+    button.textContent =
+      "Regenerate Summary";
+
+  }
+
+}
+
+
+/* =========================================================
+   SIMPLE THEME EXTRACTION
+========================================================= */
+
+function extractThemes(notes){
+
+  const text =
+    notes
+      .map(
+        note =>
+          `${note.body || ""} ${note.type || ""}`
+      )
+      .join(" ")
+      .toLowerCase();
+
+
+  const possibleThemes = [
+
+    "faith",
+    "Jesus",
+    "God",
+    "obedience",
+    "salvation",
+    "grace",
+    "prayer",
+    "love",
+    "forgiveness",
+    "truth",
+    "discipleship",
+    "sin",
+    "repentance",
+    "trust",
+    "provision",
+    "fear",
+    "hope",
+    "wisdom"
+
+  ];
+
+
+  return possibleThemes
+    .filter(
+      word =>
+        text.includes(
+          word.toLowerCase()
+        )
+    )
+    .slice(0,6);
+
+}
+
+
+/* =========================================================
+   VIEW SOURCE NOTES
+========================================================= */
+
+async function viewSources(){
+
+  const notes =
+    await loadAllNotes();
+
+
+  const groupNotes =
+    notes.filter(
+      note =>
+        (
+          note.visibility === "GROUP" ||
+          note.visibility === "PUBLIC"
+        ) &&
+        note.passageReference ===
+        state.currentRef
+    );
+
+
+  if(!groupNotes.length){
+
+    alert(
+      "No source notes are available for this passage yet."
+    );
+
+    return;
+
+  }
+
+
+  $("aiSummary").innerHTML = `
+
+    <strong>
+      Source Notes Used
+    </strong>
+
+    <br><br>
+
+    ${groupNotes
+      .map(
+        note => `
+
+          <div class="note-card">
+
+            <div class="note-meta">
+
+              ${escapeHtml(
+                note.userName ||
+                "Anonymous"
+              )}
+
+              •
+
+              ${escapeHtml(
+                note.reference ||
+                ""
+              )}
+
+            </div>
+
+            ${escapeHtml(
+              note.body ||
+              ""
+            )}
+
+          </div>
+
+        `
+      )
+      .join("")}
+
+  `;
+
+}
+
+
+/* =========================================================
+   NAME HANDLING
+========================================================= */
+
+function saveName(){
+
+  const input =
+    $("userNameInput");
+
+
+  const value =
+    input.value.trim();
+
+
+  if(!value){
+
+    alert(
+      "Please enter a display name."
+    );
+
+    return;
+
+  }
+
+
+  currentUser.name =
+    value;
+
+
+  if(!currentUser.id){
+
+    currentUser.id =
+      "user-" +
+      Date.now() +
+      "-" +
+      Math.random()
+        .toString(36)
+        .slice(2,8);
+
+  }
+
+
+  saveUser();
+
+  updateNameDisplay();
+
+  hideNameModal();
+
+  showStatus(
+    "Your display name has been saved.",
+    "success"
+  );
+
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+function showStatus(
+  message,
+  type="info"
+){
+
+  const el =
+    $("mainStatus");
+
+
+  el.textContent =
+    message;
+
+
+  el.className =
+    "status " +
+    type;
+
+
+  clearTimeout(
+    showStatus.timer
+  );
+
+
+  showStatus.timer =
+    setTimeout(
+      () => {
+
+        el.style.display =
+          "none";
+
+      },
+      4000
+    );
+
+}
+
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHtml(value){
+
+  return String(value)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+
+}
+
+
+/* =========================================================
+   EVENT LISTENERS
+========================================================= */
+
+$("changeNameBtn")
+  .addEventListener(
+    "click",
+    showNameModal
+  );
+
+
+$("saveName")
+  .addEventListener(
+    "click",
+    saveName
+  );
+
+
+$("userNameInput")
+  .addEventListener(
+    "keydown",
+    event => {
+
+      if(event.key === "Enter"){
+
+        saveName();
+
+      }
+
+    }
+  );
+
+
+$("openReaderBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      openRef(
+        demoPlan.days[
+          currentDayIndex
+        ].ref
+      );
+
+      window.scrollTo({
+        top:200,
+        behavior:"smooth"
+      });
+
+    }
+  );
+
+
+$("backToToday")
+  .addEventListener(
+    "click",
+    () => {
+
+      openRef(
+        demoPlan.days[
+          currentDayIndex
+        ].ref
+      );
+
+    }
+  );
+
+
+$("markCompleteBtn")
+  .addEventListener(
+    "click",
+    markReadingComplete
+  );
+
+
+$("myNotesBtn")
+  .addEventListener(
+    "click",
+    showMyNotes
+  );
+
+
+$("closeMyNotes")
+  .addEventListener(
+    "click",
+    () => {
+
+      $("myNotesModal").style.display =
+        "none";
+
+    }
+  );
+
+
+$("saveNote")
+  .addEventListener(
+    "click",
+    saveNote
+  );
+
+
+$("regenerateSummary")
+  .addEventListener(
+    "click",
+    generateAISummary
+  );
+
+
+$("viewSources")
+  .addEventListener(
+    "click",
+    viewSources
+  );
+
+
+$("closeModal")
+  .addEventListener(
+    "click",
+    () => {
+
+      $("noteModal").style.display =
+        "none";
+
+    }
+  );
+
+
+$("modalAddReply")
+  .addEventListener(
+    "click",
+    () => {
+
+      $("noteModal").style.display =
+        "none";
+
+      $("visibility").value =
+        "GROUP";
+
+      $("noteBody").focus();
+
+    }
+  );
+
+
+$("prevChap")
+  .addEventListener(
+    "click",
+    previousChapter
+  );
+
+
+$("nextChap")
+  .addEventListener(
+    "click",
+    nextChapter
+  );
+
+
+$("bookSelect")
+  .addEventListener(
+    "change",
+    () => {
+
+      const book =
+        $("bookSelect").value;
+
+
+      populateChapterSelect(
+        book,
+        1
+      );
+
+
+      openRef(
+        `${book} 1`
+      );
+
+    }
+  );
+
+
+$("chapterSelect")
+  .addEventListener(
+    "change",
+    openSelectedChapter
+  );
+
+
+/* =========================================================
+   CLOSE MODALS WHEN CLICKING OUTSIDE
+========================================================= */
+
+[
+  "noteModal",
+  "nameModal",
+  "myNotesModal"
+].forEach(id => {
+
+  $(id).addEventListener(
+    "click",
+    event => {
+
+      if(
+        event.target ===
+        $(id)
+      ){
+
+        $(id).style.display =
+          "none";
+
+      }
+
+    }
+  );
+
+});
+
+
+/* =========================================================
+   INITIALIZATION
+========================================================= */
+
+async function init(){
+
+  loadUser();
+
+  loadReadingProgress();
+
+  updateNameDisplay();
+
+  populateBookSelect();
+
+  populateChapterSelect(
+    "John",
+    6
+  );
+
+
+  renderPlan();
+
+
+  updateDailyQuestion();
+
+
+  /*
+    If no name exists, require one.
+  */
+
+  if(!currentUser.name){
+
+    showNameModal();
+
+  }
+
+
+  /*
+    Open today's reading.
+  */
+
+  await openRef(
+    demoPlan.days[
+      currentDayIndex
+    ].ref
+  );
+
+
+  /*
+    Load group notes.
+  */
+
+  await loadGroupNotes();
+
+}
+
+
+init();
+
 
 </script>
+
 </body>
 </html>

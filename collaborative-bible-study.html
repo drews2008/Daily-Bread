@@ -200,6 +200,39 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 </script>
 
+<!-- Inline fallback for Save Name and updateNameDisplay to work even if module fails -->
+<script>
+function updateNameDisplay(){
+  try{
+    const name = localStorage.getItem('cbs_user_name');
+    const el = document.getElementById('nameDisplay');
+    if(el) el.textContent = name ? ('Signed in as: ' + name) : '';
+  }catch(e){console.error('updateNameDisplay fallback error',e)}
+}
+
+function saveNameFallback(){
+  const input = document.getElementById('userNameInput');
+  if(!input) return;
+  const v = input.value.trim();
+  if(!v){ alert('Please enter a display name'); return; }
+  try{
+    localStorage.setItem('cbs_user_name', v);
+    if(!localStorage.getItem('cbs_user_id')) localStorage.setItem('cbs_user_id', 'user-' + Date.now());
+    updateNameDisplay();
+    const nameModal = document.getElementById('nameModal');
+    if(nameModal) nameModal.style.display = 'none';
+  }catch(e){ console.error('saveNameFallback error', e); alert('Unable to save name'); }
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  // Attach fallback to Save Name button
+  const saveBtn = document.getElementById('saveName');
+  if(saveBtn) saveBtn.addEventListener('click', saveNameFallback);
+  // Also update display from storage on load
+  updateNameDisplay();
+});
+</script>
+
 <script type="module">
 // Collaborative Bible Study — demo implementation
 // Key points:

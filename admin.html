@@ -116,6 +116,7 @@ label {
         <button class="tab-btn active" onclick="switchTab('devotionals', this)">Devotionals</button>
         <button class="tab-btn" onclick="switchTab('verses', this)">Verses</button>
         <button class="tab-btn" onclick="switchTab('team', this)">Team</button>
+        <button class="tab-btn" onclick="switchTab('readingPlans', this)">Reading Plans</button>
     </div>
 
     <div id="devotionals" class="tab-content active">
@@ -199,6 +200,37 @@ label {
         <div id="teamMembers"></div>
     </div>
 
+    <div id="readingPlans" class="tab-content">
+        <h2>Reading Plans</h2>
+        <div class="card">
+            <div class="field">
+                <label>Plan ID (no spaces)</label>
+                <input id="planIdField" class="input" placeholder="e.g., gospel-salvation-grace">
+            </div>
+            <div class="field">
+                <label>Title</label>
+                <input id="planTitleField" class="input" placeholder="Plan title">
+            </div>
+            <div class="field">
+                <label>Theme</label>
+                <input id="planThemeField" class="input" placeholder="Short theme/description">
+            </div>
+            <div class="field">
+                <label>Days (one per line: day|reading|focus)</label>
+                <textarea id="planDaysField" rows="6" class="input" placeholder="1|Romans 3:9–26|Our Sin — Every person is guilty"></textarea>
+            </div>
+            <div style="display:flex;gap:8px">
+                <button id="saveReadingPlanBtn" class="btn">Save Plan</button>
+                <button id="deleteReadingPlanBtn" class="btn delete">Delete Plan</button>
+                <button id="refreshReadingPlansBtn" class="btn">Refresh Plans</button>
+            </div>
+        </div>
+
+        <hr>
+        <h3>Existing Reading Plans (Firestore)</h3>
+        <div id="readingPlansList"></div>
+    </div>
+
 </div>
 
 <script type="module">
@@ -212,7 +244,8 @@ import {
     deleteDoc,
     doc,
     updateDoc,
-    getDoc
+    getDoc,
+    setDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -445,10 +478,89 @@ async function loadTeam() {
     });
 }
 
+/* ================= READING PLANS (NEW) ================= */
+async function loadReadingPlans() {
+    try {
+        const snap = await getDocs(collection(db, 'readingPlans'));
+        const plans = [];
+        snap.forEach(d => {
+            const data = d.data();
+            data._id = d.id;
+            plans.push(data);
+        });
+        renderReadingPlans(plans);
+    } catch (e) {
+        console.error('loadReadingPlans error', e);
+        document.getElementById('readingPlansList').innerHTML = '<div class="card">Unable to load plans.</div>';
+    }
+}
+
+function renderReadingPlans(plans) {
+    const container = document.getElementById('readingPlansList');
+    container.innerHTML = '';
+    if (!plans || !plans.length) {
+        container.innerHTML = '<div class="card">No reading plans found.</div>';
+        return;
+    }
+    plans.forEach(p => {
+        const el = document.createElement('div');
+        el.className = 'card';
+        el.style.marginBottom = '8px';
+        el.innerHTML = `<strong>${p.title || p._id}</strong><div class="note">${p.theme || ''}</div><div style="margin-top:8px"><button class="loadPlanBtn" data-id="${p._id}">Load</button> <button class="deletePlanBtn" data-id="${p._id}">Delete</button></div>`;
+        container.appendChild(el);
+    });
+    container.querySelectorAll('.loadPlanBtn').forEach(b => b.addEventListener('click', async (evt) => {
+        const id = b.dataset.id || evt.target.dataset.id;
+        const docRef = doc(db, 'readingPlans', id);
+        const snap = await getDoc(docRef);
+        if (snap.exists()) {
+            const p = snap.data();
+            document.getElementById('planIdField').value = id;
+            document.getElementById('planTitleField').value = p.title || '';
+            document.getElementById('planThemeField').value = p.theme || '';
+            document.getElementById('planDaysField').value = (p.days || []).map(d => `${d.day}|${d.reading}|${d.focus}`).join('\n');
+            // switch to readingPlans tab
+            switchTab('readingPlans', document.querySelector(".tab-btn[onclick*='readingPlans']"));
+        }
+    }));
+    container.querySelectorAll('.deletePlanBtn').forEach(b => b.addEventListener('click', async (evt) => {
+        const id = b.dataset.id || evt.target.dataset.id;
+        if (!confirm('Delete plan ' + id + '?')) return;
+        try {
+            await deleteDoc(doc(db, 'readingPlans', id));
+            loadReadingPlans();
+        } catch (e) { console.error(e); alert('Delete failed'); }
+    }));
+}
+
+document.getElementById('saveReadingPlanBtn').addEventListener('click', async () => {
+    const id = document.getElementById('planIdField').value.trim();
+    if (!id) return alert('Provide plan id');
+    const title = document.getElementById('planTitleField').value.trim();
+    const theme = document.getElementById('planThemeField').value.trim();
+    const daysText = document.getElementById('planDaysField').value.trim();
+    const days = daysText.split('\n').map(l => { const parts = l.split('|'); return { day: Number(parts[0] || 0), reading: parts[1] || '', focus: parts[2] || '' }; }).filter(d => d.reading);
+    try {
+        await setDoc(doc(db, 'readingPlans', id), { title, theme, days });
+        alert('Saved');
+        loadReadingPlans();
+    } catch (e) { console.error(e); alert('Save failed'); }
+});
+
+document.getElementById('deleteReadingPlanBtn').addEventListener('click', async () => {
+    const id = document.getElementById('planIdField').value.trim();
+    if (!id) return alert('Provide plan id to delete');
+    if (!confirm('Delete plan ' + id + '?')) return;
+    try { await deleteDoc(doc(db, 'readingPlans', id)); alert('Deleted'); loadReadingPlans(); } catch (e) { console.error(e); alert('Delete failed'); }
+});
+
+document.getElementById('refreshReadingPlansBtn').addEventListener('click', () => loadReadingPlans());
+
 /* INIT */
 loadPosts();
 loadVerses();
 loadTeam();
+loadReadingPlans();
 
 </script>
 

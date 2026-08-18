@@ -1,0 +1,71 @@
+{
+  "plans": [
+    {
+      "id": "fighting-good-fight",
+      "title": "Fighting the Good Fight",
+      "theme": "Standing firm in faith, endurance, and spiritual warfare.",
+      "days": [
+        { "day": 1, "reading": "1 Timothy 6:11–16", "focus": "Flee, Pursue, Fight — What it means to actively pursue righteousness." },
+        { "day": 2, "reading": "Ephesians 6:10–18", "focus": "Put on the Armor — Preparing yourself for spiritual battle." },
+        { "day": 3, "reading": "2 Timothy 4:6–8", "focus": "Finish the Race — Remaining faithful to the end." },
+        { "day": 4, "reading": "James 1:2–12", "focus": "Enduring Trials — How God uses trials to build perseverance." },
+        { "day": 5, "reading": "Hebrews 12:1–3", "focus": "Run With Patience — Keeping your eyes on Christ when you want to quit." }
+      ]
+    },
+    {
+      "id": "who-is-god",
+      "title": "Who Is God?",
+      "theme": "Understanding God's character and nature.",
+      "days": [
+        { "day": 1, "reading": "Psalm 103", "focus": "God Is Merciful — His compassion, forgiveness, and patience." },
+        { "day": 2, "reading": "Isaiah 6:1–8", "focus": "God Is Holy — Seeing God rightly changes how we see ourselves." },
+        { "day": 3, "reading": "Exodus 34:1–8", "focus": "God Is Gracious — His mercy and faithfulness toward His people." },
+        { "day": 4, "reading": "Psalm 139:1–18", "focus": "God Knows You — Nothing about you is hidden from Him." },
+        { "day": 5, "reading": "Romans 8:28–39", "focus": "God Loves You — Nothing can separate the believer from God's love." }
+      ]
+    },
+    {
+      "id": "gospel-salvation-grace",
+      "title": "The Gospel: Sin, Salvation & Grace",
+      "theme": "Understanding why we need the Gospel and what Christ accomplished.",
+      "days": [
+        { "day": 1, "reading": "Romans 3:9–26", "focus": "Our Sin — Every person is guilty before God." },
+        { "day": 2, "reading": "Ephesians 2:1–10", "focus": "Our Condition — We were spiritually dead, but God made us alive." },
+        { "day": 3, "reading": "John 3:1–21", "focus": "The New Birth — What it means to be born again." },
+        { "day": 4, "reading": "Romans 5:6–11", "focus": "Christ Died for Us — God's love demonstrated through Christ's death." },
+        { "day": 5, "reading": "2 Corinthians 5:17–21", "focus": "Made New — The believer becomes a new creation and receives reconciliation." }
+      ]
+    },
+    {
+      "id": "wisdom-everyday-life",
+      "title": "Wisdom for Everyday Life",
+      "theme": "Learning to live wisely according to God's Word.",
+      "days": [
+        { "day": 1, "reading": "Proverbs 3:1–12", "focus": "Trust God — Trusting Him instead of leaning on your own understanding." },
+        { "day": 2, "reading": "Proverbs 4:20–27", "focus": "Guard Your Heart — What you allow into your heart affects your life." },
+        { "day": 3, "reading": "James 3:1–18", "focus": "Control Your Tongue — The incredible power of our words." },
+        { "day": 4, "reading": "Proverbs 16:1–9", "focus": "Our Plans, God's Direction — Making plans while submitting them to God." },
+        { "day": 5, "reading": "Matthew 7:24–27", "focus": "Build on the Rock — Hearing God's Word isn't enough; we must obey it." }
+      ]
+    },
+    {
+      "id": "walking-with-christ",
+      "title": "Walking With Christ",
+      "theme": "What daily discipleship actually looks like.",
+      "days": [
+        { "day": 1, "reading": "Luke 9:18–27", "focus": "Deny Yourself — Taking up your cross and following Christ." },
+        { "day": 2, "reading": "John 15:1–17", "focus": "Abide in Christ — Staying connected to Christ and bearing fruit." },
+        { "day": 3, "reading": "Galatians 5:16–26", "focus": "Walk by the Spirit — Putting the flesh to death and producing spiritual fruit." },
+        { "day": 4, "reading": "Philippians 2:1–16", "focus": "Have the Mind of Christ — Humility, obedience, and serving others." },
+        { "day": 5, "reading": "Colossians 3:1–17", "focus": "Put Off, Put On — Removing the old life and putting on the character of Christ." }
+      ]
+    }
+  ],
+  "rotation": {
+    "Monday": "gospel-salvation-grace",
+    "Tuesday": "wisdom-everyday-life",
+    "Wednesday": "walking-with-christ",
+    "Thursday": "fighting-good-fight",
+    "Friday": "who-is-god"
+  }
+}
